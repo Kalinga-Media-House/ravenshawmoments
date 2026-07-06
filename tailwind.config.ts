@@ -1,20 +1,28 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
 
 const config: Config = {
+  darkMode: ["class"],
+
   content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/pages/**/*.{ts,tsx}",
+    "./src/components/**/*.{ts,tsx}",
+    "./src/app/**/*.{ts,tsx}",
   ],
+
   theme: {
     extend: {
       colors: {
         ravenshaw: {
-          800: '#8a2727',
-          900: '#752222',
-          300: '#f3b0b0',
+          300: "#f3b0b0",
+          800: "#8a2727",
+          900: "#752222",
         },
       },
     },
   },
-  plugins: [],
+
+  plugins: [animate],
 };
+
 export default config;

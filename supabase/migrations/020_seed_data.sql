@@ -13,12 +13,13 @@ BEGIN;
 -- ============================================================================
 -- Course Levels
 -- ============================================================================
-INSERT INTO public.course_levels(code,display_name,duration_years,display_order)
+INSERT INTO public.course_levels
+(code, display_name, duration_years)
 VALUES
-('plus_two','Higher Secondary',2,1),
-('ug','Under Graduate',3,2),
-('pg','Post Graduate',2,3),
-('phd','Doctor of Philosophy',5,4)
+('plus_two','Higher Secondary',2),
+('ug','Under Graduate',3),
+('pg','Post Graduate',2),
+('phd','Doctor of Philosophy',5)
 ON CONFLICT DO NOTHING;
 
 -- ============================================================================
