@@ -1,12 +1,13 @@
 // =============================================================================
 // Ravenshaw Moments
-// File      : src/features/department/components/notices/NoticeBadge.tsx
-// Purpose   : Priority and target audience badge for department circulars
+// File      : src/features/department/components/Notices/NoticeBadge.tsx
+// Purpose   : Priority and target audience badge consuming Shared Platform Layer
 // =============================================================================
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { DepartmentNoticePriority, DepartmentNoticeAudience } from "@/types/department";
+import { StatusBadge } from "@/features/shared/components";
 
 export interface NoticeBadgeProps {
   priority?: DepartmentNoticePriority;
@@ -24,15 +25,11 @@ export const NoticeBadge: React.FC<NoticeBadgeProps> = ({ priority, audience, is
       )}
 
       {priority === "critical" && (
-        <Badge variant="destructive" className="text-2xs">
-          Critical
-        </Badge>
+        <StatusBadge label="Critical" variant="critical" className="text-2xs" />
       )}
 
       {priority === "high" && (
-        <Badge variant="secondary" className="text-2xs border-amber-500/40 text-amber-500">
-          High Priority
-        </Badge>
+        <StatusBadge label="High Priority" variant="high" className="text-2xs" />
       )}
 
       {audience && audience !== "all" && (

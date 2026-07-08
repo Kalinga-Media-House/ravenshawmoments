@@ -1,11 +1,12 @@
 // =============================================================================
 // Ravenshaw Moments
-// File      : src/features/department/components/shared/EmptyDepartmentState.tsx
-// Purpose   : Reusable empty state UI component for Department modules
+// File      : src/features/department/components/Shared/EmptyDepartmentState.tsx
+// Purpose   : Reusable empty state UI component consuming Shared Platform Layer
 // =============================================================================
 
 import React from "react";
 import { FolderOpen } from "lucide-react";
+import { EmptyStateCard } from "@/features/shared/components";
 
 export interface EmptyDepartmentStateProps {
   title?: string;
@@ -21,17 +22,11 @@ export const EmptyDepartmentState: React.FC<EmptyDepartmentStateProps> = ({
   icon,
 }) => {
   return (
-    <div
-      role="status"
-      aria-label={title}
-      className="flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed border-border bg-card/40 text-card-foreground shadow-xs"
-    >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground mb-4">
-        {icon || <FolderOpen className="h-6 w-6" aria-hidden="true" />}
-      </div>
-      <h3 className="text-base font-semibold text-foreground tracking-tight">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground max-w-sm">{description}</p>
-      {action && <div className="mt-6">{action}</div>}
-    </div>
+    <EmptyStateCard
+      title={title}
+      description={description}
+      icon={icon || <FolderOpen className="h-6 w-6" aria-hidden="true" />}
+      action={action}
+    />
   );
 };

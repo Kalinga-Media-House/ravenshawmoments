@@ -42,3 +42,4 @@ export interface ApiResponse<T = unknown> {
 
 export * from "./profile";
 export * from "./department";
+export * from "@/features/shared";

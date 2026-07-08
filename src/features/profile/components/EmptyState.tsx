@@ -1,7 +1,13 @@
+// =============================================================================
+// Ravenshaw Moments
+// File      : src/features/profile/components/EmptyState.tsx
+// Purpose   : Profile empty state consuming Shared Platform Layer
+// =============================================================================
+
 import * as React from "react";
-import { cn } from "@/lib/utils";
 import { LucideIcon, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyStateCard } from "@/features/shared/components";
 
 export interface EmptyStateProps {
   title?: string;
@@ -18,27 +24,21 @@ export function EmptyState({
   icon: Icon = FolderOpen,
   actionLabel,
   onAction,
-  className,
+  className = "",
 }: EmptyStateProps) {
   return (
-    <div
-      className={cn(
-        "flex min-h-[220px] flex-col items-center justify-center rounded-xl border border-dashed border-border p-8 text-center bg-card/50",
-        className
-      )}
-    >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground mb-4">
-        <Icon className="h-6 w-6" aria-hidden="true" />
-      </div>
-      <h3 className="text-base font-semibold text-foreground">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground max-w-sm">{description}</p>
-      {actionLabel && onAction && (
-        <div className="mt-6">
+    <EmptyStateCard
+      title={title}
+      description={description}
+      icon={<Icon className="h-6 w-6" aria-hidden="true" />}
+      className={className}
+      action={
+        actionLabel && onAction ? (
           <Button variant="outline" size="sm" onClick={onAction}>
             {actionLabel}
           </Button>
-        </div>
-      )}
-    </div>
+        ) : undefined
+      }
+    />
   );
 }
