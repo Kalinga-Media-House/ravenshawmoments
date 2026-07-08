@@ -5,3 +5,5 @@ export * from "./Gallery";
 export * from "./EventList";
 export * from "./NoticeList";
 export * from "./PublicationList";
+export * from "./PublicNavbar";
+export * from "./PublicFooter";
