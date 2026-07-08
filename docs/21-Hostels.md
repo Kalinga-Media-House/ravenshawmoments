@@ -2,7 +2,7 @@
 
 **Project:** Ravenshaw Moments\
 **Version:** 2.0 (Legacy)\
-**Status:** 🔒 Frozen\
+**Status:** ✅ Complete\
 **Document Type:** Hostel & Housing Hub Specification
 
 ------------------------------------------------------------------------

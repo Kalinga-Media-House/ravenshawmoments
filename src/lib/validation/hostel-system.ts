@@ -175,29 +175,29 @@ export type UpdateHostelNoticePayload = z.infer<typeof updateHostelNoticeSchema>
 // 6. Hostel Event Validation
 // =============================================================================
 
-export const createHostelEventSchema = z
-  .object({
-    hostel_id: uuidSchema,
-    title: z.string().min(3).max(255),
-    slug: slugSchema,
-    category: z.enum(["festival", "competition", "farewell", "freshers", "other"]).default("festival"),
-    description: z.string().max(5000).optional(),
-    venue: z.string().min(2).max(255),
-    start_time: z.string().datetime(),
-    end_time: z.string().datetime(),
-    is_published: z.boolean().default(true),
-    is_registration_required: z.boolean().default(false),
-    registration_url: z.string().url().optional(),
-  })
-  .refine(
-    (data) => new Date(data.end_time).getTime() > new Date(data.start_time).getTime(),
-    {
-      message: "End time must be after start time",
-      path: ["end_time"],
-    }
-  );
+const baseHostelEventSchema = z.object({
+  hostel_id: uuidSchema,
+  title: z.string().min(3).max(255),
+  slug: slugSchema,
+  category: z.enum(["festival", "competition", "farewell", "freshers", "other"]).default("festival"),
+  description: z.string().max(5000).optional(),
+  venue: z.string().min(2).max(255),
+  start_time: z.string().datetime(),
+  end_time: z.string().datetime(),
+  is_published: z.boolean().default(true),
+  is_registration_required: z.boolean().default(false),
+  registration_url: z.string().url().optional(),
+});
 
-export const updateHostelEventSchema = createHostelEventSchema.partial().omit({
+export const createHostelEventSchema = baseHostelEventSchema.refine(
+  (data) => new Date(data.end_time).getTime() > new Date(data.start_time).getTime(),
+  {
+    message: "End time must be after start time",
+    path: ["end_time"],
+  }
+);
+
+export const updateHostelEventSchema = baseHostelEventSchema.partial().omit({
   hostel_id: true,
   slug: true,
 });
