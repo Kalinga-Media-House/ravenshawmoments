@@ -32,3 +32,6 @@ export abstract class BaseRepository<T> implements IRepository<T> {
     return data as T[];
   }
 }
+
+export * from "./profile.repository";
+
