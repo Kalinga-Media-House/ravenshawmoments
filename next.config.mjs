@@ -50,6 +50,10 @@ const nextConfig = {
             value: "origin-when-cross-origin",
           },
           {
+            key: "Content-Security-Policy",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://yahllwlimhztjyjkfwwe.supabase.co https://lh3.googleusercontent.com https://www.svgrepo.com; font-src 'self'; connect-src 'self' https://yahllwlimhztjyjkfwwe.supabase.co;",
+          },
+          {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
           },

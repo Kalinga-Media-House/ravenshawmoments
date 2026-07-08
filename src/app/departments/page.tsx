@@ -1,3 +1,4 @@
+export const revalidate = 3600;
 // =============================================================================
 // Ravenshaw Moments
 // File      : src/app/departments/page.tsx

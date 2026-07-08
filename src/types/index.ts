@@ -31,14 +31,9 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: {
-    code: string;
-    message: string;
-  };
-}
+export type ApiResponse<T = void> = 
+  | (T extends void ? { success: true; data?: never; error?: never } : { success: true; data: T; error?: never })
+  | { success: false; error: { code: string; message: string }; data?: never };
 
 export * from "./profile";
 export * from "./department";
