@@ -5,7 +5,7 @@
 // =============================================================================
 
 import { SupabaseClient } from "@supabase/supabase-js";
-import { BaseRepository } from "./index";
+import { BaseRepository } from "./base.repository";
 
 export type DbRow = Record<string, unknown>;
 

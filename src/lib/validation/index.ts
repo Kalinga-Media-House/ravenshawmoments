@@ -51,4 +51,4 @@ export type SignInInput = z.infer<typeof signInSchema>;
 export type ProfileInput = z.infer<typeof profileSchema>;
 
 export * from "./profile-system";
-
+export * from "./department-system";

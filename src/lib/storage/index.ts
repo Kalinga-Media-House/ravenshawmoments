@@ -369,3 +369,5 @@ export async function deleteStorageFile(
 
   return { success: true };
 }
+
+export * from "./department-storage";
