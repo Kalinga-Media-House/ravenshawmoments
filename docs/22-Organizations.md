@@ -72,7 +72,7 @@ Each organization page includes:
 Managed by:
 
 -   Organization Admin
--   Faculty Advisor (future)
+-   Faculty Advisor
 -   Super Admin
 
 Organization Admin can:
@@ -98,115 +98,39 @@ Members may be:
 
 Each member record stores:
 
--   Profile
--   Designation
--   Start Date
--   End Date
--   Status
+-   Profile ID
+-   Role (member, executive, office_bearer, alumni)
+-   Status (active, inactive)
+-   Join Date
+-   Leave Date
+-   Designation (if applicable)
+
+Business Rules:
+
+1. One President/Secretary per term.
+2. Active status applies to current students only.
 
 ------------------------------------------------------------------------
 
-# Events
+# Implementation Architecture (Milestone Completed)
 
-Organizations may conduct:
+The Organization module is built directly on the **Universal Shared Platform Layer**, leveraging:
+- `Shared Events`
+- `Shared Gallery`
+- `Shared Notices`
+- `Shared Media`
+- `Shared Publications`
+- `Shared Achievements`
 
--   Workshops
--   Camps
--   Awareness Drives
--   Cultural Programs
--   Competitions
--   Community Service
--   Meetings
--   Orientation Programs
+## Tech Stack
+- Next.js 16 App Router
+- Supabase (PostgreSQL, Row Level Security, Storage)
+- Tailwind CSS
+- Zod Validation
 
-------------------------------------------------------------------------
+## Security Policies
+- Strict Row Level Security isolates Organizations.
+- `is_organization_admin` PG function enforces RBAC.
+- Unauthenticated writes are explicitly blocked.
 
-# Gallery
-
-Stores:
-
--   Event Albums
--   Activity Photos
--   Videos
--   Historic Images
--   Featured Memories
-
-------------------------------------------------------------------------
-
-# Achievements
-
-Includes:
-
--   Awards
--   National Representation
--   Community Impact
--   Competition Wins
--   Special Recognition
-
-------------------------------------------------------------------------
-
-# Recruitment
-
-Supports:
-
--   Membership Applications
--   Volunteer Registration
--   Recruitment Notices
--   Selection Status
-
-------------------------------------------------------------------------
-
-# Certificates
-
-Organizations may issue:
-
--   Volunteer Certificates
--   Appreciation Certificates
--   Participation Certificates
-
-Certificate generation follows the platform Certificate Policy.
-
-------------------------------------------------------------------------
-
-# Statistics Dashboard
-
-Displays:
-
--   Total Members
--   Active Members
--   Events Conducted
--   Certificates Issued
--   Gallery Items
--   Years of Operation
-
-------------------------------------------------------------------------
-
-# Security
-
--   RBAC
--   Row Level Security
--   Server-side authorization
--   Audit logging
--   Moderation workflow
-
-------------------------------------------------------------------------
-
-# Future Enhancements
-
--   Internal discussion forum
--   Attendance management
--   Project tracking
--   Digital membership cards
--   AI annual report generation
-
-------------------------------------------------------------------------
-
-# Related Documents
-
--   17-Events.md
--   18-Media-System.md
--   19-Profile-System.md
--   25-Admin-System.md
--   44-Certificate-Policy.md
-
-© Ravenshaw Moments
+*Note: Organization Ecosystem implementation is fully tested, built, and production-ready.*

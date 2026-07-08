@@ -372,3 +372,4 @@ export async function deleteStorageFile(
 
 export * from "./department-storage";
 export * from "./hostel-storage";
+export * from "./organization-storage";

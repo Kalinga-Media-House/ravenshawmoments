@@ -52,3 +52,5 @@ export type ProfileInput = z.infer<typeof profileSchema>;
 
 export * from "./profile-system";
 export * from "./department-system";
+export * from "./hostel-system";
+export * from "./organization-system";
