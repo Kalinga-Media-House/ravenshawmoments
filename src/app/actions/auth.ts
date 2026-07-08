@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { env } from "@/lib/env";
 
 export async function signUp(formData: FormData): Promise<void> {
   const supabase = await createClient();
@@ -13,7 +14,7 @@ export async function signUp(formData: FormData): Promise<void> {
     email,
     password,
     options: {
-      emailRedirectTo: "http://localhost:3000/auth/callback",
+      emailRedirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback`,
     },
   });
 

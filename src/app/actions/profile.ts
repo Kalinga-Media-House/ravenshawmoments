@@ -2,8 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { profileSchema } from "@/lib/validation";
+import { sanitizeText } from "@/lib/sanitize";
 
-export async function createProfile(formData: FormData) {
+export async function createProfile(formData: FormData): Promise<void> {
   const supabase = await createClient();
 
   const {
@@ -14,14 +16,18 @@ export async function createProfile(formData: FormData) {
     redirect("/login");
   }
 
-  const full_name = String(formData.get("full_name"));
-  const username = String(formData.get("username"));
-  const bio = String(formData.get("bio"));
+  const rawInput = {
+    full_name: sanitizeText(String(formData.get("full_name") || "")),
+    username: sanitizeText(String(formData.get("username") || "")),
+    bio: sanitizeText(String(formData.get("bio") || "")),
+  };
 
-  const slug = username
+  const validated = profileSchema.parse(rawInput);
+
+  const slug = (validated.username || user.id)
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, "-");
+    .replace(/[^a-z0-9_-]/g, "-");
 
   const { error } = await supabase
     .from("profiles")
@@ -30,10 +36,10 @@ export async function createProfile(formData: FormData) {
         id: user.id,
         auth_user_id: user.id,
         email: user.email,
-        full_name,
-        username,
+        full_name: validated.full_name,
+        username: validated.username,
         slug,
-        bio,
+        bio: validated.bio,
       },
       {
         onConflict: "id",

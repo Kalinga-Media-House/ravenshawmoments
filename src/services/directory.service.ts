@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 export const directoryService = {
   // Fetch all departments from Supabase
   getDepartments: async () => {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('departments')
       .select('*')
@@ -15,7 +15,7 @@ export const directoryService = {
 
   // Fetch a single department by slug
   getDepartment: async (slug: string) => {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('departments')
       .select('*')

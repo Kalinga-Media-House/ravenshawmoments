@@ -1,13 +1,19 @@
-import ProfileForm from "@/components/profile/ProfileForm";
+"use client";
 
-export default function ProfilePage() {
+import { toast } from "sonner";
+
+export default function Page() {
   return (
-    <main className="mx-auto max-w-3xl p-10">
-      <h1 className="mb-8 text-4xl font-bold">
-        Complete Your Profile
-      </h1>
-
-      <ProfileForm />
+    <main style={{ padding: 40 }}>
+      <button
+        onClick={() => toast.success("Hello World")}
+        style={{
+          padding: "12px 20px",
+          cursor: "pointer",
+        }}
+      >
+        Show Toast
+      </button>
     </main>
   );
 }
