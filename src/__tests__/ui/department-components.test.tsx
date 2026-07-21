@@ -39,7 +39,7 @@ describe("Department UI Component Rendering Tests", () => {
 
   it("DepartmentSkeleton renders animated pulse container", () => {
     const { container } = render(<DepartmentSkeleton />);
-    const skeletonEl = container.querySelector(".animate-pulse");
+    const skeletonEl = container.querySelector('[data-slot="skeleton"], .animate-shimmer, .animate-pulse');
     expect(skeletonEl).not.toBeNull();
   });
 });

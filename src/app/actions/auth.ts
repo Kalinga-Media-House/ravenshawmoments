@@ -27,7 +27,7 @@ export async function signUpAction(data: RegisterFormValues): Promise<AuthRespon
 
   const supabase = await createClient();
 
-  const { email, password, fullName, role, department, batch, hostel, gender, universityName, currentProfession, designation, joiningYear, isRavenshawvian, level } = parsed.data;
+  const { email, password, fullName, role, department, entryYear, exitYear, stream, hostel, gender, universityName, currentProfession, designation, joiningYear, isRavenshawvian, level } = parsed.data;
 
   // Map metadata exactly for the auth.users raw_user_meta_data
   const metadata: Record<string, any> = {
@@ -37,10 +37,17 @@ export async function signUpAction(data: RegisterFormValues): Promise<AuthRespon
   };
 
   if (isRavenshawvian === "Yes") {
-    metadata.department = department;
     if (role === "student" || role === "alumni") {
       metadata.level = level;
-      metadata.batch = batch;
+      if (level === "+2") {
+        metadata.stream = stream;
+        metadata.batch = `${entryYear}-${parseInt(entryYear || "0") + 2}`;
+        metadata.department = null; // Explicitly null for +2
+        metadata.hostel = null;     // Explicitly null for +2
+      } else {
+        metadata.department = department;
+        metadata.batch = `${entryYear}-${exitYear}`;
+      }
     }
     if (role === "student") {
       metadata.hostel = hostel;
@@ -56,6 +63,16 @@ export async function signUpAction(data: RegisterFormValues): Promise<AuthRespon
   } else {
     metadata.university_name = universityName;
     metadata.level = level;
+    if (level === "+2") {
+      metadata.stream = stream;
+      metadata.batch = `${entryYear}-${parseInt(entryYear || "0") + 2}`;
+      metadata.department = null;
+      metadata.hostel = null;
+    } else {
+      metadata.department = department;
+      metadata.batch = `${entryYear}-${exitYear}`;
+      metadata.hostel = null;
+    }
   }
 
   const { error } = await supabase.auth.signUp({
@@ -103,7 +120,7 @@ export async function resetPasswordRequestAction(data: ForgotPasswordFormValues)
   const supabase = await createClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${env.NEXT_PUBLIC_APP_URL}/reset-password`,
+    redirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/reset-password`,
   });
 
   if (error) {
@@ -120,6 +137,15 @@ export async function updatePasswordAction(data: ResetPasswordFormValues): Promi
   }
 
   const supabase = await createClient();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  console.log("[updatePasswordAction] Current auth session:", session ? `Session exists (user id: ${session.user.id})` : "Session is null");
+
+  if (!session) {
+    return { error: "Auth session missing or expired. Please click the reset password link from your email again." };
+  }
 
   const { error } = await supabase.auth.updateUser({
     password: parsed.data.password,

@@ -13,3 +13,7 @@ export * from "./OrganizationTimeline";
 export * from "./OrganizationPublications";
 export * from "./OrganizationEmptyState";
 export * from "./OrganizationSkeleton";
+
+// Directory
+export * from "./OrganizationsDirectory";
+export * from "./OrganizationDirectoryCard";

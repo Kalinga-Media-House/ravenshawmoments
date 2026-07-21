@@ -1,17 +1,26 @@
-
 import React, { Suspense } from "react";
 import { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Gallery, EventList, NoticeList, PublicationList } from "@/features/shared";
-import { MapPin, Mail, Users, Share2 } from "lucide-react";
+import { MapPin, Mail, Users, Share2, Globe, Phone } from "lucide-react";
+import { getPublicOrganizationBySlug, listActiveMembers } from "@/app/actions/organization";
 
-export const revalidate = 3600;
+export const revalidate = 60; // Revalidate every minute instead of 3600
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
+  const res = await getPublicOrganizationBySlug(resolvedParams.slug);
+  
+  if (!res.success || !res.data) {
+    return {
+      title: "Organization Not Found | Ravenshaw Moments",
+    };
+  }
+  
   return {
-    title: `${resolvedParams.slug} | Organization`,
+    title: `${res.data.name} | Organization`,
+    description: res.data.description?.substring(0, 160) || `Learn more about ${res.data.name} at Ravenshaw University.`,
   };
 }
 
@@ -23,42 +32,68 @@ export default async function OrganizationDetailPage({
   const resolvedParams = await params;
   const { slug } = resolvedParams;
 
-  // Real implementation will fetch the item here
-  // const res = await getPublicOrganizationBySlug(slug);
-  // if (!res.success) notFound();
+  const res = await getPublicOrganizationBySlug(slug);
+  if (!res.success || !res.data) {
+    notFound();
+  }
+
+  const org = res.data;
+  
+  // Try to fetch members to show count, fail silently if error
+  let memberCount = 0;
+  try {
+    const membersRes = await listActiveMembers(org.id);
+    if (membersRes.success && membersRes.data) {
+      memberCount = membersRes.data.length;
+    }
+  } catch (e) {
+    console.error("Failed to fetch members for org count", e);
+  }
 
   return (
     <article className="pb-24">
       {/* Hero Banner */}
-      <div className="relative h-64 md:h-96 w-full bg-gray-900 flex items-end">
-        <div className="absolute inset-0 z-0">
+      <div className="relative h-64 md:h-96 w-full flex items-end">
+        <div className="absolute inset-0 z-0 bg-black">
           <Image 
-            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+            src="/images/hero/hero-3.webp"
             alt="Cover"
             fill
             className="object-cover opacity-40"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+          <div 
+            className="absolute inset-0 pointer-events-none" 
+            style={{ background: "linear-gradient(135deg, rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.38))" }} 
+          />
+          <div 
+            className="absolute inset-0 pointer-events-none" 
+            style={{ background: "linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 60%)" }} 
+          />
         </div>
         
         <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 pb-8">
           <div className="flex flex-col md:flex-row md:items-end gap-6 justify-between">
             <div className="flex items-center gap-6">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl bg-white shadow-xl flex items-center justify-center p-2">
-                <div className="w-full h-full bg-primary/10 rounded-lg flex items-center justify-center text-3xl font-bold text-primary">
-                  {slug.charAt(0).toUpperCase()}
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-2xl rm-glass-card shadow-xl flex items-center justify-center p-2 border border-[var(--color-rm-glass-border)]">
+                <div className="w-full h-full bg-[var(--color-rm-gold)]/10 rounded-xl flex items-center justify-center text-3xl font-bold text-[var(--color-rm-gold)]">
+                  {org.name.substring(0, 2).toUpperCase()}
                 </div>
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-2 capitalize">{slug.replace(/-/g, ' ')}</h1>
-                <p className="text-muted-foreground flex items-center gap-2">
-                  <MapPin className="w-4 h-4" /> Ravenshaw University Campus
-                </p>
+                <h1 className="text-3xl md:text-5xl font-extrabold rm-heading-primary mb-2 capitalize">{org.name}</h1>
+                <div className="flex flex-wrap items-center gap-4">
+                  <p className="rm-text-body font-semibold flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[var(--color-rm-gold)]" /> Ravenshaw University Campus
+                  </p>
+                  <span className="text-xs font-bold tracking-wider text-[var(--color-rm-gold)] uppercase bg-[var(--color-rm-gold)]/10 px-3 py-1 rounded-full border border-[var(--color-rm-gold)]/20">
+                    {org.org_type.replace(/_/g, ' ')}
+                  </span>
+                </div>
               </div>
             </div>
             
-            <button className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-full font-medium hover:opacity-90 transition-opacity">
+            <button className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-[var(--color-rm-glass-border)] text-[var(--color-rm-text-primary)] rounded-full font-semibold hover:bg-[var(--color-rm-gold)]/20 hover:border-[var(--color-rm-gold)]/50 transition-all">
               <Share2 className="w-4 h-4" /> Share
             </button>
           </div>
@@ -68,50 +103,90 @@ export default async function OrganizationDetailPage({
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-12">
-          <section>
-            <h2 className="text-2xl font-bold mb-4">About</h2>
-            <p className="text-muted-foreground leading-relaxed text-lg">
-              Detailed description of the organization goes here. It provides a comprehensive overview of its history, objectives, and community impact.
+          <section className="rm-reveal">
+            <h2 className="text-2xl font-bold rm-heading-primary mb-6 flex items-center gap-3">
+              <span className="w-6 h-px bg-[var(--color-rm-gold)]" />
+              About
+            </h2>
+            <p className="rm-text-body leading-relaxed text-lg whitespace-pre-wrap">
+              {org.description || "No description available for this organization."}
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Recent Events</h2>
-            <Suspense fallback={<div>Loading events...</div>}>
+          <section className="rm-reveal" style={{ transitionDelay: '100ms' }}>
+            <h2 className="text-2xl font-bold rm-heading-primary mb-6 flex items-center gap-3">
+              <span className="w-6 h-px bg-[var(--color-rm-gold)]" />
+              Recent Events
+            </h2>
+            <Suspense fallback={<div className="text-[var(--color-rm-gold)]">Loading events...</div>}>
                {/* <EventList events={[]} /> */}
-               <div className="p-8 border border-border rounded-xl text-center text-muted-foreground">No events scheduled.</div>
+               <div className="p-8 rm-glass-card border border-[var(--color-rm-glass-border)] rounded-2xl text-center rm-text-muted">No events scheduled.</div>
             </Suspense>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Gallery</h2>
-            <Suspense fallback={<div>Loading gallery...</div>}>
+          <section className="rm-reveal" style={{ transitionDelay: '200ms' }}>
+            <h2 className="text-2xl font-bold rm-heading-primary mb-6 flex items-center gap-3">
+              <span className="w-6 h-px bg-[var(--color-rm-gold)]" />
+              Gallery
+            </h2>
+            <Suspense fallback={<div className="text-[var(--color-rm-gold)]">Loading gallery...</div>}>
                {/* <Gallery items={[]} /> */}
-               <div className="p-8 border border-border rounded-xl text-center text-muted-foreground">No gallery items found.</div>
+               <div className="p-8 rm-glass-card border border-[var(--color-rm-glass-border)] rounded-2xl text-center rm-text-muted">No gallery items found.</div>
             </Suspense>
           </section>
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-8">
-          <div className="bg-card border border-border rounded-xl p-6">
-            <h3 className="font-semibold mb-4 text-lg">Quick Info</h3>
-            <ul className="space-y-4">
-              <li className="flex items-center gap-3 text-muted-foreground">
-                <Users className="w-5 h-5 text-primary" />
-                <span>1,200+ Members</span>
+        <div className="space-y-8 rm-reveal" style={{ transitionDelay: '300ms' }}>
+          <div className="rm-glass-card border border-[var(--color-rm-glass-border)] rounded-2xl p-6 md:p-8">
+            <h3 className="font-bold rm-heading-primary mb-6 text-xl">Quick Info</h3>
+            <ul className="space-y-5">
+              <li className="flex items-center gap-4 rm-text-body font-medium">
+                <div className="w-10 h-10 rounded-full bg-white/5 border border-[var(--color-rm-glass-border)] flex items-center justify-center">
+                  <Users className="w-4 h-4 text-[var(--color-rm-gold)]" />
+                </div>
+                <span>{memberCount > 0 ? `${memberCount} Members` : 'Growing Community'}</span>
               </li>
-              <li className="flex items-center gap-3 text-muted-foreground">
-                <Mail className="w-5 h-5 text-primary" />
-                <span>contact@ravenshaw.edu</span>
-              </li>
+              
+              {org.contact_email && (
+                <li className="flex items-center gap-4 rm-text-body font-medium">
+                  <div className="w-10 h-10 rounded-full bg-white/5 border border-[var(--color-rm-glass-border)] flex items-center justify-center">
+                    <Mail className="w-4 h-4 text-[var(--color-rm-gold)]" />
+                  </div>
+                  <a href={`mailto:${org.contact_email}`} className="hover:text-[var(--color-rm-gold)] transition-colors">
+                    {org.contact_email}
+                  </a>
+                </li>
+              )}
+              
+              {org.contact_phone && (
+                <li className="flex items-center gap-4 rm-text-body font-medium">
+                  <div className="w-10 h-10 rounded-full bg-white/5 border border-[var(--color-rm-glass-border)] flex items-center justify-center">
+                    <Phone className="w-4 h-4 text-[var(--color-rm-gold)]" />
+                  </div>
+                  <a href={`tel:${org.contact_phone}`} className="hover:text-[var(--color-rm-gold)] transition-colors">
+                    {org.contact_phone}
+                  </a>
+                </li>
+              )}
+              
+              {org.social_links?.website && (
+                <li className="flex items-center gap-4 rm-text-body font-medium">
+                  <div className="w-10 h-10 rounded-full bg-white/5 border border-[var(--color-rm-glass-border)] flex items-center justify-center">
+                    <Globe className="w-4 h-4 text-[var(--color-rm-gold)]" />
+                  </div>
+                  <a href={org.social_links.website} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-rm-gold)] transition-colors">
+                    Visit Website
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
-          <div className="bg-card border border-border rounded-xl p-6">
-            <h3 className="font-semibold mb-4 text-lg">Latest Notices</h3>
+          <div className="rm-glass-card border border-[var(--color-rm-glass-border)] rounded-2xl p-6 md:p-8">
+            <h3 className="font-bold rm-heading-primary mb-6 text-xl">Latest Notices</h3>
             {/* <NoticeList notices={[]} /> */}
-            <p className="text-sm text-muted-foreground">No active notices.</p>
+            <p className="rm-text-muted">No active notices.</p>
           </div>
         </div>
       </div>

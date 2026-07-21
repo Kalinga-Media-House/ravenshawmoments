@@ -1,0 +1,17 @@
+-- Migration: 071_remove_legacy_event_tables
+-- Description: Drops legacy event tables after all modules have migrated to the new Event Engine.
+-- NOTE: DO NOT EXECUTE THIS MIGRATION YET. It is prepared for Phase 5 (Future Legacy Cleanup).
+
+-- 1. Drop foreign key constraints (if any point directly to these)
+-- (Normally cascades take care of this, but it's good practice)
+
+-- 2. Drop the tables
+DROP TABLE IF EXISTS department_events CASCADE;
+DROP TABLE IF EXISTS hostel_events CASCADE;
+DROP TABLE IF EXISTS organization_events CASCADE;
+-- NOTE: timeline_events was not found or is a different concept, keep it unless verified.
+
+-- 3. Drop legacy views or functions if any existed specifically for these
+-- (None explicitly identified in initial review, but drop if found later)
+
+-- 4. Clean up types (This will be handled automatically by Supabase CLI gen types)

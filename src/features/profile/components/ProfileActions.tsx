@@ -35,7 +35,13 @@ export function ProfileActions({
   className,
 }: ProfileActionsProps) {
   const handleShare = () => {
-    const url = shareUrl || (typeof window !== "undefined" ? window.location.href : "");
+    let url = shareUrl || "";
+    if (url && url.startsWith("/") && typeof window !== "undefined") {
+      url = window.location.origin + url;
+    } else if (!url && typeof window !== "undefined") {
+      url = window.location.href;
+    }
+
     if (!url) return;
 
     if (navigator.share) {
@@ -55,7 +61,7 @@ export function ProfileActions({
           {editUrl ? (
             <Link
               href={editUrl}
-              className={cn(buttonVariants({ variant: "default", size: "sm" }), "h-9 gap-1.5 font-medium shadow-xs")}
+              className={cn(buttonVariants({ variant: "default", size: "sm" }), "h-9 gap-1.5 font-medium shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground")}
             >
               <Edit2 className="h-4 w-4" />
               <span>Edit Profile</span>
@@ -65,7 +71,7 @@ export function ProfileActions({
               variant="default"
               size="sm"
               onClick={onEditClick}
-              className="h-9 gap-1.5 font-medium shadow-xs"
+              className="h-9 gap-1.5 font-medium shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Edit2 className="h-4 w-4" />
               <span>Edit Profile</span>
@@ -76,17 +82,17 @@ export function ProfileActions({
             claimUrl ? (
               <Link
                 href={claimUrl}
-                className={cn(buttonVariants({ variant: "destructive", size: "sm" }), "h-9 gap-1.5 font-medium shadow-xs animate-pulse")}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 gap-1.5 font-medium shadow-sm border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10 bg-transparent animate-pulse")}
               >
                 <ShieldAlert className="h-4 w-4" />
                 <span>Claim Roll No.</span>
               </Link>
             ) : (
               <Button
-                variant="destructive"
+                variant="outline"
                 size="sm"
                 onClick={onClaimClick}
-                className="h-9 gap-1.5 font-medium shadow-xs animate-pulse"
+                className="h-9 gap-1.5 font-medium shadow-sm border-[#D4AF37]/50 text-[#D4AF37] hover:bg-[#D4AF37]/10 bg-transparent animate-pulse"
               >
                 <ShieldAlert className="h-4 w-4" />
                 <span>Claim Roll No.</span>
@@ -98,7 +104,7 @@ export function ProfileActions({
             privacyUrl ? (
               <Link
                 href={privacyUrl}
-                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 gap-1.5 font-medium")}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 gap-1.5 font-medium border-white/10 hover:bg-white/5 bg-black/20 text-foreground")}
                 title="Privacy Settings"
               >
                 <Lock className="h-4 w-4 text-muted-foreground" />
@@ -109,7 +115,7 @@ export function ProfileActions({
                 variant="outline"
                 size="sm"
                 onClick={onPrivacyClick}
-                className="h-9 gap-1.5 font-medium"
+                className="h-9 gap-1.5 font-medium border-white/10 hover:bg-white/5 bg-black/20 text-foreground"
                 title="Privacy Settings"
               >
                 <Lock className="h-4 w-4 text-muted-foreground" />

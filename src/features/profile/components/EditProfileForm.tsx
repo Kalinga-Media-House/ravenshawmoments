@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { updateBasicProfile } from "@/app/actions/profile";
 import { toast } from "sonner";
-import { Edit2, Loader2, Image as ImageIcon } from "lucide-react";
+import { Edit2, Loader2 } from "lucide-react";
+import { GenderCombobox } from "@/components/forms/GenderCombobox";
 
 export interface EditProfileFormProps {
   open: boolean;
@@ -19,8 +20,7 @@ export interface EditProfileFormProps {
     username: string;
     bio?: string | null;
     gender?: string | null;
-    avatar_url?: string | null;
-    cover_url?: string | null;
+    date_of_birth?: string | null;
   };
 }
 
@@ -31,11 +31,10 @@ export function EditProfileForm({
   defaultValues,
 }: EditProfileFormProps) {
   const [fullName, setFullName] = React.useState(defaultValues.full_name || "");
-  const [username, setUsername] = React.useState(defaultValues.username || "");
+  const [username, setUsername] = React.useState((defaultValues.username || "").replace(/^@+/, ""));
   const [bio, setBio] = React.useState(defaultValues.bio || "");
   const [gender, setGender] = React.useState(defaultValues.gender || "");
-  const [avatarUrl, setAvatarUrl] = React.useState(defaultValues.avatar_url || "");
-  const [coverUrl, setCoverUrl] = React.useState(defaultValues.cover_url || "");
+  const [dateOfBirth, setDateOfBirth] = React.useState(defaultValues.date_of_birth || "");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,8 +51,7 @@ export function EditProfileForm({
       formData.append("username", username.trim());
       formData.append("bio", bio.trim());
       if (gender) formData.append("gender", gender);
-      if (avatarUrl.trim()) formData.append("avatar_url", avatarUrl.trim());
-      if (coverUrl.trim()) formData.append("cover_url", coverUrl.trim());
+      if (dateOfBirth) formData.append("date_of_birth", dateOfBirth);
 
       const res = await updateBasicProfile(formData);
       if (res.success) {
@@ -132,63 +130,35 @@ export function EditProfileForm({
 
           <div className="space-y-2">
             <Label htmlFor="edit-gender">Gender</Label>
-            <select
-              id="edit-gender"
+            <GenderCombobox
               value={gender}
-              onChange={(e) => setGender(e.target.value)}
+              onChange={setGender}
               disabled={isSubmitting}
-              className="flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-input/30"
-            >
-              <option value="">Prefer not to say</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
+            />
           </div>
 
-          <div className="pt-2 border-t border-border/40 space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <ImageIcon className="h-3.5 w-3.5 text-primary" />
-              <span>Media URLs (Optional)</span>
-            </h4>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-avatar">Avatar Photo URL</Label>
-              <Input
-                id="edit-avatar"
-                type="url"
-                placeholder="https://images.unsplash.com/photo-..."
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                disabled={isSubmitting}
-                className="text-xs font-mono"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-cover">Cover Banner URL</Label>
-              <Input
-                id="edit-cover"
-                type="url"
-                placeholder="https://images.unsplash.com/photo-..."
-                value={coverUrl}
-                onChange={(e) => setCoverUrl(e.target.value)}
-                disabled={isSubmitting}
-                className="text-xs font-mono"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-dob">Date of Birth</Label>
+            <Input
+              id="edit-dob"
+              type="date"
+              value={dateOfBirth}
+              onChange={(e) => setDateOfBirth(e.target.value)}
+              disabled={isSubmitting}
+            />
           </div>
 
-          <DialogFooter className="pt-4">
+          <DialogFooter className="pt-4 border-t border-border/40 mt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
+              className="hover:bg-muted"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!fullName.trim() || !username.trim() || isSubmitting} className="gap-2">
+            <Button type="submit" disabled={!fullName.trim() || !username.trim() || isSubmitting} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
               <span>{isSubmitting ? "Saving Changes..." : "Save Profile"}</span>
             </Button>

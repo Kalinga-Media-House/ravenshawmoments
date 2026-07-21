@@ -13,15 +13,15 @@ export interface ProfileBannerProps {
 }
 
 const typeGradients: Record<string, string> = {
-  student: "from-blue-600 via-indigo-600 to-purple-700",
-  teacher: "from-amber-600 via-orange-600 to-red-700",
-  alumni: "from-emerald-600 via-teal-600 to-cyan-700",
-  department_cr: "from-indigo-700 via-purple-700 to-pink-700",
-  hostel_bmc: "from-cyan-600 via-blue-600 to-indigo-700",
-  organization_admin: "from-violet-700 via-purple-700 to-fuchsia-700",
-  contributor: "from-rose-600 via-pink-600 to-purple-700",
-  volunteer: "from-green-600 via-emerald-600 to-teal-700",
-  default: "from-slate-700 via-gray-800 to-zinc-900",
+  student: "from-[#4A0E1B] via-[#6B1526] to-[#801B30]",
+  teacher: "from-[#3B1E1E] via-[#5C2B2B] to-[#7B3838]",
+  alumni: "from-[#3A2424] via-[#593636] to-[#784A4A]",
+  department_cr: "from-[#4B1A2A] via-[#6E263D] to-[#8F3350]",
+  hostel_bmc: "from-[#3D141C] via-[#5C1E2A] to-[#7A2838]",
+  organization_admin: "from-[#471724] via-[#6B2236] to-[#8C2C47]",
+  contributor: "from-[#521927] via-[#752438] to-[#992E49]",
+  volunteer: "from-[#421A22] via-[#632733] to-[#853444]",
+  default: "from-[#4A0E1B] via-[#6B1526] to-[#801B30]",
 };
 
 export function ProfileBanner({

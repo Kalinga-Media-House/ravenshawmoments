@@ -17,6 +17,7 @@ export const ROUTES = {
 
 export const USER_ROLES = {
   SUPER_ADMIN: "super_admin",
+  ADMIN: "admin",
   MODERATOR: "moderator",
   DEPARTMENT_CR: "department_cr",
   HOSTEL_BMC: "hostel_bmc",

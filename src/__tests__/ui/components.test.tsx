@@ -60,10 +60,10 @@ describe("UI Components Rendering & State Tests", () => {
   describe("Loading Skeletons", () => {
     it("should render skeleton loaders cleanly without throwing DOM errors", () => {
       const { container: headerContainer } = render(<ProfileHeaderSkeleton />);
-      expect(headerContainer.querySelector(".animate-pulse")).toBeInTheDocument();
+      expect(headerContainer.querySelector('[data-slot="skeleton"], .animate-shimmer, .animate-pulse')).toBeInTheDocument();
 
       const { container: cardContainer } = render(<ProfileCardSkeleton />);
-      expect(cardContainer.querySelector(".animate-pulse")).toBeInTheDocument();
+      expect(cardContainer.querySelector('[data-slot="skeleton"], .animate-shimmer, .animate-pulse')).toBeInTheDocument();
     });
   });
 });

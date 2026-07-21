@@ -61,13 +61,13 @@ CREATE POLICY departments_select_policy ON departments
     is_active = true
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = departments.id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -79,8 +79,8 @@ CREATE POLICY departments_insert_policy ON departments
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
   );
 
@@ -90,13 +90,13 @@ CREATE POLICY departments_update_policy ON departments
   USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = departments.id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -108,8 +108,8 @@ CREATE POLICY departments_delete_policy ON departments
   USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
   );
 
@@ -122,16 +122,16 @@ CREATE POLICY department_crs_select_policy ON department_crs
   FOR SELECT
   USING (
     is_active = true
-    OR profile_id = auth.uid()
+    OR profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_crs.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -143,13 +143,13 @@ CREATE POLICY department_crs_insert_policy ON department_crs
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_crs.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -160,13 +160,13 @@ CREATE POLICY department_crs_update_policy ON department_crs
   USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_crs.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -177,13 +177,13 @@ CREATE POLICY department_crs_delete_policy ON department_crs
   USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_crs.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -198,11 +198,11 @@ CREATE POLICY department_teachers_select_policy ON department_teachers
   FOR SELECT
   USING (
     is_active = true
-    OR profile_id = auth.uid()
+    OR profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
   );
 
@@ -212,13 +212,13 @@ CREATE POLICY department_teachers_insert_policy ON department_teachers
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers hod
       WHERE hod.department_id = department_teachers.department_id
-      AND hod.profile_id = auth.uid()
+      AND hod.profile_id = app.current_profile_id()
       AND hod.is_hod = true
       AND hod.is_active = true
     )
@@ -228,16 +228,16 @@ CREATE POLICY department_teachers_insert_policy ON department_teachers
 CREATE POLICY department_teachers_update_policy ON department_teachers
   FOR UPDATE
   USING (
-    profile_id = auth.uid()
+    profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers hod
       WHERE hod.department_id = department_teachers.department_id
-      AND hod.profile_id = auth.uid()
+      AND hod.profile_id = app.current_profile_id()
       AND hod.is_hod = true
       AND hod.is_active = true
     )
@@ -248,13 +248,13 @@ CREATE POLICY department_teachers_delete_policy ON department_teachers
   USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers hod
       WHERE hod.department_id = department_teachers.department_id
-      AND hod.profile_id = auth.uid()
+      AND hod.profile_id = app.current_profile_id()
       AND hod.is_hod = true
       AND hod.is_active = true
     )
@@ -269,22 +269,22 @@ CREATE POLICY department_students_select_policy ON department_students
   FOR SELECT
   USING (
     (is_active = true AND (is_verified_by_cr = true OR is_featured = true))
-    OR profile_id = auth.uid()
+    OR profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_students.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_students.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -294,16 +294,16 @@ CREATE POLICY department_students_select_policy ON department_students
 CREATE POLICY department_students_insert_policy ON department_students
   FOR INSERT
   WITH CHECK (
-    profile_id = auth.uid()
+    profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_students.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
     )
   );
@@ -312,22 +312,22 @@ CREATE POLICY department_students_insert_policy ON department_students
 CREATE POLICY department_students_update_policy ON department_students
   FOR UPDATE
   USING (
-    profile_id = auth.uid()
+    profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_students.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_students.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -337,16 +337,16 @@ CREATE POLICY department_students_update_policy ON department_students
 CREATE POLICY department_students_delete_policy ON department_students
   FOR DELETE
   USING (
-    profile_id = auth.uid()
+    profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_students.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -361,22 +361,22 @@ CREATE POLICY department_notices_select_policy ON department_notices
   FOR SELECT
   USING (
     is_published = true
-    OR published_by = auth.uid()
+    OR published_by = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_notices.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_notices.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -388,20 +388,20 @@ CREATE POLICY department_notices_insert_policy ON department_notices
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_notices.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
       AND (department_crs.permissions_grant->>'can_post_notices')::boolean = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_notices.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -410,23 +410,23 @@ CREATE POLICY department_notices_insert_policy ON department_notices
 CREATE POLICY department_notices_update_policy ON department_notices
   FOR UPDATE
   USING (
-    published_by = auth.uid()
+    published_by = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_notices.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
       AND (department_crs.permissions_grant->>'can_post_notices')::boolean = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_notices.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -435,22 +435,22 @@ CREATE POLICY department_notices_update_policy ON department_notices
 CREATE POLICY department_notices_delete_policy ON department_notices
   FOR DELETE
   USING (
-    published_by = auth.uid()
+    published_by = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_notices.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_notices.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -465,22 +465,22 @@ CREATE POLICY department_events_select_policy ON department_events
   FOR SELECT
   USING (
     is_published = true
-    OR coordinator_profile_id = auth.uid()
+    OR coordinator_profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_events.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_events.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -492,20 +492,20 @@ CREATE POLICY department_events_insert_policy ON department_events
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_events.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
       AND (department_crs.permissions_grant->>'can_manage_events')::boolean = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_events.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -514,23 +514,23 @@ CREATE POLICY department_events_insert_policy ON department_events
 CREATE POLICY department_events_update_policy ON department_events
   FOR UPDATE
   USING (
-    coordinator_profile_id = auth.uid()
+    coordinator_profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_events.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
       AND (department_crs.permissions_grant->>'can_manage_events')::boolean = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_events.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -539,16 +539,16 @@ CREATE POLICY department_events_update_policy ON department_events
 CREATE POLICY department_events_delete_policy ON department_events
   FOR DELETE
   USING (
-    coordinator_profile_id = auth.uid()
+    coordinator_profile_id = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_events.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -563,16 +563,16 @@ CREATE POLICY department_publications_select_policy ON department_publications
   FOR SELECT
   USING (
     is_public = true
-    OR uploaded_by = auth.uid()
+    OR uploaded_by = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_publications.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -584,20 +584,20 @@ CREATE POLICY department_publications_insert_policy ON department_publications
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_crs
       WHERE department_crs.department_id = department_publications.department_id
-      AND department_crs.profile_id = auth.uid()
+      AND department_crs.profile_id = app.current_profile_id()
       AND department_crs.is_active = true
       AND (department_crs.permissions_grant->>'can_upload_publications')::boolean = true
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_publications.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -606,16 +606,16 @@ CREATE POLICY department_publications_insert_policy ON department_publications
 CREATE POLICY department_publications_update_policy ON department_publications
   FOR UPDATE
   USING (
-    uploaded_by = auth.uid()
+    uploaded_by = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_publications.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )
@@ -624,16 +624,16 @@ CREATE POLICY department_publications_update_policy ON department_publications
 CREATE POLICY department_publications_delete_policy ON department_publications
   FOR DELETE
   USING (
-    uploaded_by = auth.uid()
+    uploaded_by = app.current_profile_id()
     OR EXISTS (
       SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role = 'super_admin'
+      WHERE profiles.id = app.current_profile_id()
+      AND profiles.profile_type = 'super_admin'
     )
     OR EXISTS (
       SELECT 1 FROM department_teachers
       WHERE department_teachers.department_id = department_publications.department_id
-      AND department_teachers.profile_id = auth.uid()
+      AND department_teachers.profile_id = app.current_profile_id()
       AND department_teachers.is_hod = true
       AND department_teachers.is_active = true
     )

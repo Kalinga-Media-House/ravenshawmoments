@@ -1,42 +1,39 @@
-// =============================================================================
-// Ravenshaw Moments — Dashboard Hostel Notices Management
-// =============================================================================
-
 import React from "react";
-import type { Metadata } from "next";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { HostelNoticeRepository } from "@/repositories/hostel/hostelNotice.repository";
+import { NoticeClient } from "./NoticeClient";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { HostelEmptyState } from "@/features/hostel/components";
+import { ChevronRight, Megaphone } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Notices Management | Dashboard",
-  description: "Publish and manage hostel circulars, announcements, and notices.",
-};
+export default async function NoticesPage({ params }: { params: { id: string } }) {
+  const supabase = await createClient();
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) redirect("/auth/login");
 
-interface NoticesPageProps {
-  params: Promise<{ id: string }>;
-}
+  const { data: hostel } = await (supabase as any).from("hostels").select("*").eq("id", params.id).single();
+  if (!hostel) return <div>Hostel not found.</div>;
 
-export default async function DashboardHostelNoticesPage({ params }: NoticesPageProps) {
-  const { id } = await params;
+  const repo = new HostelNoticeRepository({ supabase: supabase as any });
+  const notices = await repo.getNoticesByHostelId(hostel.id);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Link href={`/dashboard/hostels/${id}`} className="hover:text-foreground transition-colors">Hostel Hub</Link>
+        <Link href="/dashboard" className="hover:text-foreground">Dashboard</Link>
         <ChevronRight className="h-3 w-3" />
-        <span className="font-medium text-foreground">Notices</span>
+        <Link href={`/dashboard/hostels/${hostel.id}`} className="hover:text-foreground">{hostel.name} Hub</Link>
+        <ChevronRight className="h-3 w-3" />
+        <span className="font-medium text-foreground">Notice Board</span>
       </nav>
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Notices Management</h1>
-        <p className="text-sm text-muted-foreground">Publish hostel circulars, announcements, and priority bulletins.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center">
+          <Megaphone className="w-6 h-6 mr-3 text-indigo-500" /> Notice Board
+        </h1>
       </div>
 
-      <HostelEmptyState
-        title="No Notices Published"
-        description="Hostel notices and circulars will appear here once published by BMC or administration."
-      />
+      <NoticeClient hostelId={hostel.id} initialNotices={notices} />
     </div>
   );
 }

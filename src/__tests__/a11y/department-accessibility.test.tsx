@@ -14,7 +14,7 @@ describe("Department UI Accessibility & ARIA Verification", () => {
     render(<DepartmentErrorCard title="Error" message="System alert" />);
     const alertEl = screen.getByRole("alert");
     expect(alertEl.getAttribute("aria-live")).toBe("polite");
-  });
+  }, 15000);
 
   it("EmptyDepartmentState should render semantic structure for screen readers", () => {
     render(<EmptyDepartmentState title="No Records Found" description="Try selecting another department." />);

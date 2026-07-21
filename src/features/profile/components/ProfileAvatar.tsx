@@ -15,17 +15,17 @@ export interface ProfileAvatarProps {
 }
 
 const sizeClasses: Record<AvatarSize, string> = {
-  sm: "h-10 w-10 text-xs",
-  md: "h-16 w-16 text-base",
-  lg: "h-24 w-24 sm:h-28 sm:w-28 text-xl font-bold",
-  xl: "h-28 w-28 sm:h-36 sm:w-36 text-2xl font-bold",
+  sm: "size-10 text-xs",
+  md: "size-16 text-base",
+  lg: "size-24 sm:size-28 text-xl font-bold",
+  xl: "size-28 sm:size-36 text-2xl font-black",
 };
 
 const badgeSizeClasses: Record<AvatarSize, string> = {
-  sm: "h-3 w-3 -bottom-0 -right-0",
-  md: "h-4 w-4 -bottom-0.5 -right-0.5",
-  lg: "h-6 w-6 -bottom-1 -right-1",
-  xl: "h-7 w-7 -bottom-1 -right-1",
+  sm: "size-3.5 -bottom-0 -right-0",
+  md: "size-5 -bottom-0.5 -right-0.5",
+  lg: "size-7 -bottom-1 -right-1",
+  xl: "size-8 sm:size-9 -bottom-1.5 -right-1.5",
 };
 
 function getInitials(name?: string | null): string {
@@ -45,21 +45,27 @@ export function ProfileAvatar({
 }: ProfileAvatarProps) {
   return (
     <div className={cn("relative inline-block shrink-0", className)}>
-      <Avatar className={cn("border-2 border-background shadow-sm ring-1 ring-border/50", sizeClasses[size])}>
+      <Avatar
+        className={cn(
+          "border-4 border-background shadow-xl transition-all duration-300",
+          size === "xl" || size === "lg" ? "ring-2 ring-[#D4AF37]/60" : "ring-1 ring-[#D4AF37]/30",
+          sizeClasses[size]
+        )}
+      >
         {src ? <AvatarImage src={src} alt={name || "User avatar"} className="object-cover" /> : null}
-        <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/40 text-primary font-semibold select-none">
+        <AvatarFallback className="bg-gradient-to-br from-[#2A0810] via-[#4A0E1B] to-[#6B001E] text-[#D4AF37] font-black tracking-tight select-none">
           {getInitials(name)}
         </AvatarFallback>
       </Avatar>
       {isVerified && showBadge && (
         <span
           className={cn(
-            "absolute flex items-center justify-center rounded-full bg-background text-blue-500 shadow-xs ring-2 ring-background",
+            "absolute flex items-center justify-center rounded-full bg-background text-[#D4AF37] shadow-md ring-2 sm:ring-3 ring-background transition-transform hover:scale-110",
             badgeSizeClasses[size]
           )}
           title="Verified Ravenshaw Profile"
         >
-          <CheckCircle2 className="h-full w-full fill-current text-blue-500 stroke-background" />
+          <CheckCircle2 className="size-full fill-current text-[#D4AF37] stroke-[#8F0028]" />
         </span>
       )}
     </div>

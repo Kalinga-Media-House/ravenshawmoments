@@ -22,6 +22,15 @@ export class ProfileRepository extends BaseRepository<DbRow> {
       .single();
 
     if (error) return null;
+
+    // Fetch private fields via RPC (since column-level SELECT was revoked for security)
+    const { data: privateData } = await this.supabase
+      .rpc("get_private_profile_fields", { p_profile_id: data.id });
+      
+    if (privateData && privateData.length > 0) {
+      return { ...data, ...privateData[0] } as DbRow;
+    }
+
     return data as DbRow;
   }
 

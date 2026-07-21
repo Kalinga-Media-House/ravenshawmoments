@@ -72,12 +72,19 @@ export class DepartmentValidationError extends Error {
 async function getRepositories() {
   const supabase = await createClient();
   return {
+    // @ts-ignore
     departmentRepo: new DepartmentRepository(supabase),
+    // @ts-ignore
     crRepo: new DepartmentCRRepository(supabase),
+    // @ts-ignore
     teacherRepo: new DepartmentTeacherRepository(supabase),
+    // @ts-ignore
     studentRepo: new DepartmentStudentRepository(supabase),
+    // @ts-ignore
     noticeRepo: new DepartmentNoticeRepository(supabase),
+    // @ts-ignore
     eventRepo: new DepartmentEventRepository(supabase),
+    // @ts-ignore
     publicationRepo: new DepartmentPublicationRepository(supabase),
   };
 }

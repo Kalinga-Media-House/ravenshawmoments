@@ -74,13 +74,14 @@ async function verifyHostelAuth(requireAdmin = false): Promise<AuthResult> {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== USER_ROLES.SUPER_ADMIN) {
+  // @ts-ignore
+  if (![USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN].includes(profile?.role as any)) {
     logger.warn(`HostelAction: Access denied for non-admin user ${user.id}`);
     return {
       success: false,
       error: {
         code: "FORBIDDEN",
-        message: "Super Admin privileges required for this hostel administrative action.",
+        message: "Platform Admin privileges required for this hostel administrative action.",
       },
     };
   }

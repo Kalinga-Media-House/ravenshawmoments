@@ -13,26 +13,15 @@ EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
--- 2. Organizations Table
-CREATE TABLE IF NOT EXISTS public.organizations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  slug VARCHAR(255) NOT NULL UNIQUE,
-  org_type organization_type_enum NOT NULL DEFAULT 'club',
-  description TEXT,
-  vision TEXT,
-  mission TEXT,
-  established_year INTEGER,
-  contact_email VARCHAR(255),
-  contact_phone VARCHAR(50),
-  social_links JSONB DEFAULT '{}'::jsonb,
-  logo_url TEXT,
-  cover_image_url TEXT,
-  is_verified BOOLEAN NOT NULL DEFAULT false,
-  is_active BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+-- 2. Enhance existing organizations table with ecosystem columns
+-- The organizations table was created in 003_master_data.sql. We add new columns additively.
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS vision text;
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS mission text;
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS established_year integer;
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS contact_email varchar(255);
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS contact_phone varchar(50);
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS social_links jsonb DEFAULT '{}'::jsonb;
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS is_verified boolean NOT NULL DEFAULT false;
 
 -- 3. Organization Members & Leadership Table
 CREATE TABLE IF NOT EXISTS public.organization_members (
@@ -139,15 +128,15 @@ CREATE TABLE IF NOT EXISTS public.organization_publications (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Triggers for updated_at
-CREATE TRIGGER update_organizations_updated_at BEFORE UPDATE ON public.organizations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_org_members_updated_at BEFORE UPDATE ON public.organization_members FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_org_advisors_updated_at BEFORE UPDATE ON public.organization_advisors FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_org_events_updated_at BEFORE UPDATE ON public.organization_events FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_org_gallery_updated_at BEFORE UPDATE ON public.organization_gallery FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_org_notices_updated_at BEFORE UPDATE ON public.organization_notices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_org_achievements_updated_at BEFORE UPDATE ON public.organization_achievements FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_org_publications_updated_at BEFORE UPDATE ON public.organization_publications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Triggers for updated_at (using canonical app.set_updated_at from 001_database_foundation.sql)
+-- NOTE: organizations already has trg_organizations_updated_at from 003_master_data.sql, skip it.
+CREATE TRIGGER trg_org_members_updated_at BEFORE UPDATE ON public.organization_members FOR EACH ROW EXECUTE FUNCTION app.set_updated_at();
+CREATE TRIGGER trg_org_advisors_updated_at BEFORE UPDATE ON public.organization_advisors FOR EACH ROW EXECUTE FUNCTION app.set_updated_at();
+CREATE TRIGGER trg_org_events_updated_at BEFORE UPDATE ON public.organization_events FOR EACH ROW EXECUTE FUNCTION app.set_updated_at();
+CREATE TRIGGER trg_org_gallery_updated_at BEFORE UPDATE ON public.organization_gallery FOR EACH ROW EXECUTE FUNCTION app.set_updated_at();
+CREATE TRIGGER trg_org_notices_updated_at BEFORE UPDATE ON public.organization_notices FOR EACH ROW EXECUTE FUNCTION app.set_updated_at();
+CREATE TRIGGER trg_org_achievements_updated_at BEFORE UPDATE ON public.organization_achievements FOR EACH ROW EXECUTE FUNCTION app.set_updated_at();
+CREATE TRIGGER trg_org_publications_updated_at BEFORE UPDATE ON public.organization_publications FOR EACH ROW EXECUTE FUNCTION app.set_updated_at();
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_organizations_slug ON public.organizations(slug);

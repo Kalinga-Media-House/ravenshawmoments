@@ -26,7 +26,7 @@ VALUES
   ('Hindi', 'hindi', 'Promoting Hindi literature, poetry, and linguistic heritage.', '#F44336', 120),
   ('History', 'history', 'Preserving the past to understand the present and future.', '#795548', 130),
   ('Information Technology Management', 'information-technology-management', 'Bridging technology and business management strategies.', '#009688', 140),
-  ('Journalism and Mass Communication', 'journalism-mass-communication', 'Training the voices and storytellers of the modern media era.', '#FF5722', 150),
+  ('Journalism and Mass Communication', 'journalism-and-mass-communication', 'Training the voices and storytellers of the modern media era.', '#FF5722', 150),
   ('Mathematics', 'mathematics', 'The queen of sciences, focusing on pure and applied mathematical research.', '#3F51B5', 160),
   ('Odia', 'odia', 'Celebrating the rich cultural and literary heritage of Odisha.', '#FF9800', 170),
   ('Philosophy', 'philosophy', 'Exploring fundamental questions of existence, knowledge, and ethics.', '#9C27B0', 180),
@@ -37,9 +37,9 @@ VALUES
   ('Sociology', 'sociology', 'Examining social structures, relationships, and human societies.', '#8BC34A', 230),
   ('Statistics', 'statistics', 'The science of data collection, analysis, and interpretation.', '#00BCD4', 240),
   ('Zoology', 'zoology', 'Studying animal biology, evolution, and ecological conservation.', '#4CAF50', 250)
-ON CONFLICT (name) DO UPDATE 
+ON CONFLICT (slug) DO UPDATE 
 SET 
-    slug = EXCLUDED.slug,
+    name = EXCLUDED.name,
     description = COALESCE(public.departments.description, EXCLUDED.description),
     theme_color = EXCLUDED.theme_color,
     display_order = EXCLUDED.display_order;
@@ -61,9 +61,9 @@ VALUES
   ('Devi', 'girls', 'devi-hostel', 'Empowering female students through community and heritage.', '#FF5722', 110),
   ('Daya', 'girls', 'daya-hostel', 'A peaceful and academically enriching hostel space.', '#009688', 120),
   ('Mahanadi', 'girls', 'mahanadi-hostel', 'The largest girls hostel, representing the mighty river.', '#607D8B', 130)
-ON CONFLICT (name) DO UPDATE 
+ON CONFLICT (slug) DO UPDATE 
 SET 
-    slug = EXCLUDED.slug,
+    name = EXCLUDED.name,
     hostel_type = EXCLUDED.hostel_type,
     description = COALESCE(public.hostels.description, EXCLUDED.description),
     theme_color = EXCLUDED.theme_color,

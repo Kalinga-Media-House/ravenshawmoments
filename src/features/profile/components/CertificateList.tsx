@@ -37,11 +37,11 @@ export function CertificateList({
     return (
       <div className={cn("space-y-4", className)}>
         <div>
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Award className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-[var(--color-light-heading-primary)] flex items-center gap-2">
+            <Award className="h-5 w-5 heritage-icon" />
             <span>{title}</span>
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+          <p className="text-xs text-[var(--color-light-text-muted)] mt-0.5">{description}</p>
         </div>
         <EmptyState
           title="No certificates issued yet"
@@ -55,29 +55,29 @@ export function CertificateList({
   return (
     <div className={cn("space-y-6", className)}>
       <div>
-        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-          <Award className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-bold text-[var(--color-light-heading-primary)] flex items-center gap-2">
+          <Award className="h-5 w-5 heritage-icon" />
           <span>{title} ({certificates.length})</span>
         </h2>
-        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+        <p className="text-xs text-[var(--color-light-text-muted)] mt-0.5">{description}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {certificates.map((cert) => {
           const badgeInfo = formatCertType(cert.certificate_type);
           return (
-            <Card key={cert.id} className="overflow-hidden border bg-card shadow-2xs transition-all hover:shadow-md flex flex-col justify-between">
+            <Card key={cert.id} className="overflow-hidden heritage-card-glass transition-all hover:shadow-md flex flex-col justify-between border-0">
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2.5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 heritage-icon shrink-0">
                       <Award className="h-5 w-5" />
                     </div>
                     <div>
-                      <span className="text-[11px] font-mono text-muted-foreground uppercase">
+                      <span className="text-[11px] font-mono heritage-card-muted uppercase">
                         #{cert.certificate_number}
                       </span>
-                      <h3 className="font-bold text-sm text-foreground line-clamp-1">
+                      <h3 className="font-bold text-sm heritage-card-title line-clamp-1">
                         {cert.title}
                       </h3>
                     </div>
@@ -88,13 +88,13 @@ export function CertificateList({
                 </div>
 
                 {cert.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">
+                  <p className="text-xs heritage-card-muted line-clamp-2">
                     {cert.description}
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10 text-xs heritage-card-muted">
+                  <span className="flex items-center gap-1 font-medium text-emerald-400">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     <span>Verified Issuer</span>
                   </span>
@@ -102,9 +102,9 @@ export function CertificateList({
                 </div>
               </CardContent>
 
-              <div className="px-5 py-3 bg-muted/30 border-t border-border/40 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground" title="QR Token">
-                  <QrCode className="h-3.5 w-3.5 text-primary" />
+              <div className="px-5 py-3 bg-white/5 border-t border-white/10 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-mono heritage-card-muted" title="QR Token">
+                  <QrCode className="h-3.5 w-3.5 heritage-icon" />
                   <span className="truncate max-w-[120px] sm:max-w-[180px]">{cert.qr_token}</span>
                 </div>
 
@@ -114,7 +114,7 @@ export function CertificateList({
                       href={cert.pdf_media_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-7 text-xs gap-1")}
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-white/20 bg-transparent text-white hover:bg-white hover:text-black h-7 px-3 gap-1"
                     >
                       <FileText className="h-3 w-3" />
                       <span>PDF</span>
@@ -125,7 +125,7 @@ export function CertificateList({
                       href={cert.verification_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "h-7 text-xs gap-1")}
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-[var(--color-heritage-gold)] text-black hover:bg-[var(--color-heritage-gold)]/90 h-7 px-3 gap-1"
                     >
                       <span>Verify</span>
                       <ExternalLink className="h-3 w-3" />

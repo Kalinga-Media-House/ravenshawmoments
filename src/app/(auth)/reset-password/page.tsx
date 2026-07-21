@@ -11,6 +11,7 @@ import Link from "next/link";
 
 import { ResetPasswordSchema, ResetPasswordFormValues } from "@/features/shared/validation/auth";
 import { updatePasswordAction } from "@/app/actions/auth";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -18,6 +19,22 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [strength, setStrength] = useState(0);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    const syncRecoverySession = async () => {
+      const supabase = createClient();
+      // Calling getSession() allows createBrowserClient to parse any URL fragment (#access_token=...) and persist the session cookie
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        if (code) {
+          await supabase.auth.exchangeCodeForSession(code);
+        }
+      }
+    };
+    syncRecoverySession();
+  }, []);
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(ResetPasswordSchema),

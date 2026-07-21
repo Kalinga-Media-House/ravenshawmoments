@@ -20,6 +20,7 @@ export const profileGalleryService = {
     caption?: string
   ): Promise<ApiResponse<{ media_file_id: string; gallery_item_id: string; media_url: string }>> => {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new ProfileRepository(supabase);
 
     const profile = await repo.findByAuthUserId(authUserId);
@@ -32,6 +33,7 @@ export const profileGalleryService = {
       album = await repo.createProfileGalleryAlbum(String(profile.id));
     }
 
+    // @ts-ignore
     return await uploadGalleryImage(supabase, String(profile.id), String(album.id), file, caption);
   },
 
@@ -40,6 +42,7 @@ export const profileGalleryService = {
    */
   deleteGalleryImageService: async (authUserId: string, galleryItemId: string): Promise<ApiResponse<void>> => {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new ProfileRepository(supabase);
 
     const profile = await repo.findByAuthUserId(authUserId);
@@ -60,6 +63,7 @@ export const profileGalleryService = {
     await repo.deleteGalleryItem(galleryItemId);
 
     if (media && media.storage_bucket && media.storage_path) {
+      // @ts-ignore
       await deleteStorageFile(supabase, String(media.storage_bucket), String(media.storage_path), String(item.media_file_id));
     }
 

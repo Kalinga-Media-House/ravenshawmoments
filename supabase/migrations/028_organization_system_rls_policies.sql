@@ -19,18 +19,20 @@ ALTER TABLE public.organization_publications ENABLE ROW LEVEL SECURITY;
 CREATE OR REPLACE FUNCTION public.is_organization_admin(target_org_id UUID)
 RETURNS BOOLEAN
 LANGUAGE sql
+STABLE
 SECURITY DEFINER
+SET search_path = public
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.organization_members
     WHERE org_id = target_org_id
-      AND profile_id = auth.uid()
+      AND profile_id = app.current_profile_id()
       AND status = 'active'
       AND (role IN ('executive', 'office_bearer') OR can_manage_org = true)
   ) OR EXISTS (
     SELECT 1 FROM public.organization_advisors
     WHERE org_id = target_org_id
-      AND profile_id = auth.uid()
+      AND profile_id = app.current_profile_id()
       AND is_current = true
   ) OR public.is_super_admin();
 $$;
@@ -108,7 +110,7 @@ CREATE POLICY "Read organization notices" ON public.organization_notices
   USING (
     audience = 'public' OR 
     public.is_organization_admin(org_id) OR
-    (audience = 'members' AND EXISTS (SELECT 1 FROM public.organization_members WHERE org_id = organization_notices.org_id AND profile_id = auth.uid() AND status = 'active'))
+    (audience = 'members' AND EXISTS (SELECT 1 FROM public.organization_members WHERE org_id = organization_notices.org_id AND profile_id = app.current_profile_id() AND status = 'active'))
   );
 
 CREATE POLICY "Organization admins manage notices" ON public.organization_notices

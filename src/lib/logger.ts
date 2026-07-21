@@ -1,37 +1,24 @@
-// =============================================================================
-// Ravenshaw Moments
-// File      : src/lib/logger.ts
-// Purpose   : Standardized Structured Logging
-// =============================================================================
+type LogLevel = "info" | "warn" | "error" | "debug";
 
-export type LogLevel = "info" | "warn" | "error" | "debug";
-
-export interface LogContext {
-  userId?: string;
-  action?: string;
-  module?: "profile" | "department" | "hostel" | "organization" | "auth" | "system";
-  [key: string]: any;
-}
+const formatMessage = (level: LogLevel, message: string, meta?: any) => {
+  const timestamp = new Date().toISOString();
+  const metaStr = meta ? ` | ${JSON.stringify(meta)}` : "";
+  return `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}`;
+};
 
 export const logger = {
-  log: (level: LogLevel, message: string, context?: LogContext, error?: Error | unknown) => {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      timestamp,
-      level,
-      message,
-      context,
-      error: error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : error,
-    };
-
+  info: (message: string, meta?: any) => {
+    console.info(formatMessage("info", message, meta));
+  },
+  warn: (message: string, meta?: any) => {
+    console.warn(formatMessage("warn", message, meta));
+  },
+  error: (message: string, error?: any, meta?: any) => {
+    console.error(formatMessage("error", message, meta), error || "");
+  },
+  debug: (message: string, meta?: any) => {
     if (process.env.NODE_ENV !== "production") {
-      console[level === "error" ? "error" : "log"](`[${level.toUpperCase()}] ${timestamp} - ${message}`, context || "", error || "");
-    } else {
-      console[level === "error" ? "error" : "log"](JSON.stringify(logEntry));
+      console.debug(formatMessage("debug", message, meta));
     }
   },
-  info: (message: string, context?: LogContext) => logger.log("info", message, context),
-  warn: (message: string, context?: LogContext) => logger.log("warn", message, context),
-  error: (message: string, error?: Error | unknown, context?: LogContext) => logger.log("error", message, context, error),
-  debug: (message: string, context?: LogContext) => logger.log("debug", message, context),
 };

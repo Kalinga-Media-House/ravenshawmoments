@@ -438,11 +438,11 @@ DO $$ BEGIN
   DROP POLICY IF EXISTS "verif_log_insert_admin" ON public.verification_logs;
 
   CREATE POLICY "verif_log_select_involved_admin" ON public.verification_logs FOR SELECT USING (
-    actor_id = app.current_profile_id() OR app.is_admin_or_super()
+    app.is_admin_or_super()
   );
 
   CREATE POLICY "verif_log_insert_admin" ON public.verification_logs FOR INSERT WITH CHECK (
-    actor_id = app.current_profile_id() OR app.is_admin_or_super()
+    app.is_admin_or_super()
   );
 END $$;
 
@@ -556,42 +556,42 @@ DO $$ BEGIN
   DROP POLICY IF EXISTS "albums_delete_scoped" ON public.gallery_albums;
 
   CREATE POLICY "albums_select_public" ON public.gallery_albums FOR SELECT USING (
-    is_published = true
+    is_public = true
     OR created_by = app.current_profile_id()
     OR app.is_admin_or_super()
-    OR (department_id IS NOT NULL AND app.is_dept_cr(department_id))
-    OR (hostel_id IS NOT NULL AND app.is_hostel_bmc(hostel_id))
-    OR (organization_id IS NOT NULL AND app.is_org_admin(organization_id))
+    OR (entity_type = 'department' AND app.is_dept_cr(entity_id))
+    OR (entity_type = 'hostel' AND app.is_hostel_bmc(entity_id))
+    OR (entity_type = 'organization' AND app.is_org_admin(entity_id))
   );
 
   CREATE POLICY "albums_insert_scoped" ON public.gallery_albums FOR INSERT WITH CHECK (
     created_by = app.current_profile_id()
     OR app.is_admin_or_super()
-    OR (department_id IS NOT NULL AND app.is_dept_cr(department_id))
-    OR (hostel_id IS NOT NULL AND app.is_hostel_bmc(hostel_id))
-    OR (organization_id IS NOT NULL AND app.is_org_admin(organization_id))
+    OR (entity_type = 'department' AND app.is_dept_cr(entity_id))
+    OR (entity_type = 'hostel' AND app.is_hostel_bmc(entity_id))
+    OR (entity_type = 'organization' AND app.is_org_admin(entity_id))
   );
 
   CREATE POLICY "albums_update_scoped" ON public.gallery_albums FOR UPDATE USING (
     created_by = app.current_profile_id()
     OR app.is_admin_or_super()
-    OR (department_id IS NOT NULL AND app.is_dept_cr(department_id))
-    OR (hostel_id IS NOT NULL AND app.is_hostel_bmc(hostel_id))
-    OR (organization_id IS NOT NULL AND app.is_org_admin(organization_id))
+    OR (entity_type = 'department' AND app.is_dept_cr(entity_id))
+    OR (entity_type = 'hostel' AND app.is_hostel_bmc(entity_id))
+    OR (entity_type = 'organization' AND app.is_org_admin(entity_id))
   ) WITH CHECK (
     created_by = app.current_profile_id()
     OR app.is_admin_or_super()
-    OR (department_id IS NOT NULL AND app.is_dept_cr(department_id))
-    OR (hostel_id IS NOT NULL AND app.is_hostel_bmc(hostel_id))
-    OR (organization_id IS NOT NULL AND app.is_org_admin(organization_id))
+    OR (entity_type = 'department' AND app.is_dept_cr(entity_id))
+    OR (entity_type = 'hostel' AND app.is_hostel_bmc(entity_id))
+    OR (entity_type = 'organization' AND app.is_org_admin(entity_id))
   );
 
   CREATE POLICY "albums_delete_scoped" ON public.gallery_albums FOR DELETE USING (
     created_by = app.current_profile_id()
     OR app.is_admin_or_super()
-    OR (department_id IS NOT NULL AND app.is_dept_cr(department_id))
-    OR (hostel_id IS NOT NULL AND app.is_hostel_bmc(hostel_id))
-    OR (organization_id IS NOT NULL AND app.is_org_admin(organization_id))
+    OR (entity_type = 'department' AND app.is_dept_cr(entity_id))
+    OR (entity_type = 'hostel' AND app.is_hostel_bmc(entity_id))
+    OR (entity_type = 'organization' AND app.is_org_admin(entity_id))
   );
 END $$;
 
@@ -614,12 +614,12 @@ DO $$ BEGIN
       SELECT 1 FROM public.gallery_albums ga
       WHERE ga.id = gallery_album_id
         AND (
-          ga.is_published = true
+          ga.is_public = true
           OR ga.created_by = app.current_profile_id()
           OR app.is_admin_or_super()
-          OR (ga.department_id IS NOT NULL AND app.is_dept_cr(ga.department_id))
-          OR (ga.hostel_id IS NOT NULL AND app.is_hostel_bmc(ga.hostel_id))
-          OR (ga.organization_id IS NOT NULL AND app.is_org_admin(ga.organization_id))
+          OR (ga.entity_type = 'department' AND app.is_dept_cr(ga.entity_id))
+          OR (ga.entity_type = 'hostel' AND app.is_hostel_bmc(ga.entity_id))
+          OR (ga.entity_type = 'organization' AND app.is_org_admin(ga.entity_id))
         )
     )
   );
@@ -632,9 +632,9 @@ DO $$ BEGIN
       WHERE ga.id = gallery_album_id
         AND (
           ga.created_by = app.current_profile_id()
-          OR (ga.department_id IS NOT NULL AND app.is_dept_cr(ga.department_id))
-          OR (ga.hostel_id IS NOT NULL AND app.is_hostel_bmc(ga.hostel_id))
-          OR (ga.organization_id IS NOT NULL AND app.is_org_admin(ga.organization_id))
+          OR (ga.entity_type = 'department' AND app.is_dept_cr(ga.entity_id))
+          OR (ga.entity_type = 'hostel' AND app.is_hostel_bmc(ga.entity_id))
+          OR (ga.entity_type = 'organization' AND app.is_org_admin(ga.entity_id))
         )
     )
   );
@@ -647,9 +647,9 @@ DO $$ BEGIN
       WHERE ga.id = gallery_album_id
         AND (
           ga.created_by = app.current_profile_id()
-          OR (ga.department_id IS NOT NULL AND app.is_dept_cr(ga.department_id))
-          OR (ga.hostel_id IS NOT NULL AND app.is_hostel_bmc(ga.hostel_id))
-          OR (ga.organization_id IS NOT NULL AND app.is_org_admin(ga.organization_id))
+          OR (ga.entity_type = 'department' AND app.is_dept_cr(ga.entity_id))
+          OR (ga.entity_type = 'hostel' AND app.is_hostel_bmc(ga.entity_id))
+          OR (ga.entity_type = 'organization' AND app.is_org_admin(ga.entity_id))
         )
     )
   ) WITH CHECK (
@@ -660,9 +660,9 @@ DO $$ BEGIN
       WHERE ga.id = gallery_album_id
         AND (
           ga.created_by = app.current_profile_id()
-          OR (ga.department_id IS NOT NULL AND app.is_dept_cr(ga.department_id))
-          OR (ga.hostel_id IS NOT NULL AND app.is_hostel_bmc(ga.hostel_id))
-          OR (ga.organization_id IS NOT NULL AND app.is_org_admin(ga.organization_id))
+          OR (ga.entity_type = 'department' AND app.is_dept_cr(ga.entity_id))
+          OR (ga.entity_type = 'hostel' AND app.is_hostel_bmc(ga.entity_id))
+          OR (ga.entity_type = 'organization' AND app.is_org_admin(ga.entity_id))
         )
     )
   );
@@ -675,9 +675,9 @@ DO $$ BEGIN
       WHERE ga.id = gallery_album_id
         AND (
           ga.created_by = app.current_profile_id()
-          OR (ga.department_id IS NOT NULL AND app.is_dept_cr(ga.department_id))
-          OR (ga.hostel_id IS NOT NULL AND app.is_hostel_bmc(ga.hostel_id))
-          OR (ga.organization_id IS NOT NULL AND app.is_org_admin(ga.organization_id))
+          OR (ga.entity_type = 'department' AND app.is_dept_cr(ga.entity_id))
+          OR (ga.entity_type = 'hostel' AND app.is_hostel_bmc(ga.entity_id))
+          OR (ga.entity_type = 'organization' AND app.is_org_admin(ga.entity_id))
         )
     )
   );

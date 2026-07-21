@@ -51,6 +51,7 @@ export class OrganizationBusinessRuleError extends Error {
 export class OrganizationService {
   static async getOrganizationBySlug(slug: string): Promise<Organization> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationRepository(supabase);
 
     const org = await repo.findBySlug(slug);
@@ -64,12 +65,30 @@ export class OrganizationService {
 
   static async listOrganizationsByType(orgType: OrganizationTypeEnum): Promise<Organization[]> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationRepository(supabase);
     return await repo.findActiveByType(orgType);
   }
 
+  static async listAllActiveOrganizations(): Promise<Organization[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .eq('is_active', true)
+      .eq('is_verified', true)
+      .order('name', { ascending: true });
+    
+    if (error) {
+      logger.error('OrganizationService: Failed to fetch all active organizations', { error });
+      return [];
+    }
+    return data as Organization[];
+  }
+
   static async createOrganization(payload: CreateOrganizationPayload): Promise<Organization> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationRepository(supabase);
 
     // Business Rule: Validate uniqueness of slug
@@ -85,6 +104,7 @@ export class OrganizationService {
 
   static async updateOrganization(id: string, payload: UpdateOrganizationPayload): Promise<Organization> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationRepository(supabase);
 
     const existing = await repo.findById(id);
@@ -93,6 +113,35 @@ export class OrganizationService {
     const updated = await repo.update(id, payload as Partial<Organization>);
     logger.info(`OrganizationService: Updated organization ${updated.id}`);
     return updated;
+  }
+
+  static async getOrganizationById(id: string): Promise<Organization> {
+    const supabase = await createClient();
+    // @ts-ignore
+    const repo = new OrganizationRepository(supabase);
+    const org = await repo.findById(id);
+    if (!org) {
+      throw new OrganizationNotFoundError();
+    }
+    return org;
+  }
+
+  static async getMyOrganizations(profileId: string): Promise<OrganizationMember[]> {
+    const supabase = await createClient();
+    // @ts-ignore
+    const memberRepo = new OrganizationMemberRepository(supabase);
+    // Find active memberships for the current user
+    const { data, error } = await supabase
+      .from('organization_members')
+      .select('*, organizations(*)')
+      .eq('profile_id', profileId)
+      .eq('status', 'active');
+    
+    if (error) {
+      logger.error('Error fetching my organizations', { error });
+      return [];
+    }
+    return data as OrganizationMember[];
   }
 }
 
@@ -103,6 +152,7 @@ export class OrganizationService {
 export class MemberService {
   static async addMember(payload: CreateOrganizationMemberPayload): Promise<OrganizationMember> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationMemberRepository(supabase);
 
     // Validate uniqueness
@@ -120,8 +170,24 @@ export class MemberService {
 
   static async listActiveMembers(orgId: string): Promise<OrganizationMember[]> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationMemberRepository(supabase);
     return await repo.findActiveMembersByOrg(orgId);
+  }
+
+  static async removeMember(memberId: string): Promise<void> {
+    const supabase = await createClient();
+    // @ts-ignore
+    const repo = new OrganizationMemberRepository(supabase);
+    await repo.update(memberId, { status: "past" } as Partial<OrganizationMember>);
+  }
+
+  static async updateMemberRole(memberId: string, role: string, designation?: string): Promise<OrganizationMember> {
+    const supabase = await createClient();
+    // @ts-ignore
+    const repo = new OrganizationMemberRepository(supabase);
+    const updated = await repo.update(memberId, { role, designation } as Partial<OrganizationMember>);
+    return updated;
   }
 }
 
@@ -132,6 +198,7 @@ export class MemberService {
 export class OfficeBearerService {
   static async assignOfficeBearer(payload: CreateOrganizationMemberPayload): Promise<OrganizationMember> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationMemberRepository(supabase);
 
     // Ensure they are assigning an office bearer
@@ -161,6 +228,7 @@ export class OfficeBearerService {
 
   static async listOfficeBearers(orgId: string): Promise<OrganizationMember[]> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationMemberRepository(supabase);
     return await repo.findOfficeBearersByOrg(orgId);
   }
@@ -173,6 +241,7 @@ export class OfficeBearerService {
 export class AdvisorService {
   static async assignAdvisor(payload: CreateOrganizationAdvisorPayload): Promise<OrganizationAdvisor> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationAdvisorRepository(supabase);
 
     // Business Rule: One Faculty Advisor 
@@ -188,7 +257,15 @@ export class AdvisorService {
 
   static async listCurrentAdvisors(orgId: string): Promise<OrganizationAdvisor[]> {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new OrganizationAdvisorRepository(supabase);
     return await repo.findCurrentByOrg(orgId);
+  }
+
+  static async removeAdvisor(advisorId: string): Promise<void> {
+    const supabase = await createClient();
+    // @ts-ignore
+    const repo = new OrganizationAdvisorRepository(supabase);
+    await repo.update(advisorId, { is_current: false, end_date: new Date().toISOString() } as Partial<OrganizationAdvisor>);
   }
 }

@@ -1,5 +1,12 @@
 import React from "react";
+import { Metadata } from "next";
 import { PublicNavbar, PublicFooter } from "@/features/shared";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "https://ravenshawmoments.com",
+  },
+};
 
 export default function PublicLayout({
   children,
@@ -14,22 +21,21 @@ export default function PublicLayout({
     "logo": "https://ravenshawmoments.com/logo.png",
     "description": "Preserving Memories. Celebrating Achievements. Connecting Generations.",
     "sameAs": [
-      "https://twitter.com/ravenshaw",
-      "https://www.linkedin.com/school/ravenshaw-university/"
+      "https://www.instagram.com/ravenshaw.moments",
+      "https://youtube.com/@ravenshawmoments",
+      "https://www.facebook.com/ravenshaw.moments",
+      "https://x.com/ravenshawx"
     ]
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative">
-      <head>
-        <link rel="canonical" href="https://ravenshawmoments.com" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      </head>
+    <div className="min-h-screen flex flex-col relative font-sans selection:bg-[#B01846] selection:text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <PublicNavbar />
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-[72px] sm:pt-[76px] min-[1150px]:pt-20 animate-page-transition">
         {children}
       </main>
       <PublicFooter />

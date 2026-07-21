@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +11,12 @@ import { useRouter } from "next/navigation";
 
 import { RegisterSchema, RegisterFormValues } from "@/features/shared/validation/auth";
 import { signUpAction } from "@/app/actions/auth";
+import { DepartmentCombobox } from "@/components/forms/DepartmentCombobox";
+import { HostelCombobox } from "@/components/forms/HostelCombobox";
+import { RoleCombobox } from "@/components/forms/RoleCombobox";
+import { LevelCombobox } from "@/components/forms/LevelCombobox";
+import { StreamCombobox } from "@/components/forms/StreamCombobox";
+import { DesignationCombobox } from "@/components/forms/DesignationCombobox";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -35,6 +41,33 @@ export default function RegisterPage() {
 
   const isRavenshawvian = watch("isRavenshawvian");
   const role = watch("role");
+  const level = watch("level");
+  const entryYear = watch("entryYear");
+
+  useEffect(() => {
+    if (level === "+2") {
+      form.setValue("department", "");
+      form.setValue("hostel", "");
+    } else {
+      form.setValue("stream", "");
+    }
+  }, [level, form]);
+
+  useEffect(() => {
+    if (isRavenshawvian === "No") {
+      form.setValue("role", "external_participant");
+      form.setValue("department", "");
+      form.setValue("hostel", "");
+      form.setValue("currentProfession", "");
+      form.setValue("designation", "");
+      form.setValue("joiningYear", "");
+    } else {
+      form.setValue("universityName", "");
+      if (role === "external_participant") {
+        form.setValue("role", "student");
+      }
+    }
+  }, [isRavenshawvian, form, role]);
 
   const handleNextStep = async () => {
     // Validate Step 1 before proceeding
@@ -171,73 +204,115 @@ export default function RegisterPage() {
                 <motion.div key="yes" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">Your Role</label>
-                    <select {...register("role")} className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none">
-                      <option value="student">Student</option>
-                      <option value="alumni">Alumni</option>
-                      <option value="teacher">Teacher</option>
-                    </select>
+                    <Controller
+                      name="role"
+                      control={form.control}
+                      render={({ field }) => (
+                        <RoleCombobox
+                          value={field.value || undefined}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
                   </div>
 
                   {(role === "student" || role === "alumni") && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium mb-1">Level</label>
-                        <select {...register("level")} className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none">
-                          <option value="">Select Level...</option>
-                          <option value="+2">+2 (Higher Secondary)</option>
-                          <option value="UG">Undergraduate (UG)</option>
-                          <option value="PG">Postgraduate (PG)</option>
-                          <option value="PhD">Doctorate (PhD)</option>
-                        </select>
+                        <Controller
+                          name="level"
+                          control={form.control}
+                          render={({ field }) => (
+                            <LevelCombobox
+                              value={field.value || undefined}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
                         {errors.level && <p className="text-destructive text-xs mt-1">{errors.level.message}</p>}
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Batch Year (Entry - Exit)</label>
-                        <input {...register("batch")} placeholder="e.g. 2020-2023" className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" />
-                        {errors.batch && <p className="text-destructive text-xs mt-1">{errors.batch.message}</p>}
-                      </div>
+
+                      {level === "+2" && (
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Stream</label>
+                          <Controller
+                            name="stream"
+                            control={form.control}
+                            render={({ field }) => (
+                              <StreamCombobox
+                                value={field.value || undefined}
+                                onChange={field.onChange}
+                              />
+                            )}
+                          />
+                          {errors.stream && <p className="text-destructive text-xs mt-1">{errors.stream.message}</p>}
+                        </div>
+                      )}
+                      
+                      {level && level !== "+2" && (
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Department</label>
+                          <Controller
+                            name="department"
+                            control={form.control}
+                            render={({ field }) => (
+                              <DepartmentCombobox
+                                value={field.value || undefined}
+                                onChange={field.onChange}
+                              />
+                            )}
+                          />
+                          {errors.department && <p className="text-destructive text-xs mt-1">{errors.department.message}</p>}
+                        </div>
+                      )}
+
+                      {level && (
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Entry Year</label>
+                          <input {...register("entryYear")} type="text" inputMode="numeric" maxLength={4} placeholder="e.g. 2024" className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" />
+                          {errors.entryYear && <p className="text-destructive text-xs mt-1">{errors.entryYear.message}</p>}
+                        </div>
+                      )}
+
+                      {level === "+2" ? (
+                        <div>
+                          <label className="block text-sm font-medium mb-1 text-muted-foreground">Exit Year (Auto-calculated)</label>
+                          <input readOnly value={entryYear && /^\d{4}$/.test(entryYear) ? parseInt(entryYear) + 2 : ""} className="w-full px-4 py-3 rounded-xl border bg-muted focus:outline-none text-muted-foreground cursor-not-allowed" />
+                          <p className="text-xs text-muted-foreground mt-1">+2 is a two-year programme.</p>
+                        </div>
+                      ) : level ? (
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Exit Year</label>
+                          <input {...register("exitYear")} type="text" inputMode="numeric" maxLength={4} placeholder="e.g. 2026" className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" />
+                          {errors.exitYear && <p className="text-destructive text-xs mt-1">{errors.exitYear.message}</p>}
+                        </div>
+                      ) : null}
+
+                      {role === "student" && level && level !== "+2" && (
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Hostel (Optional)</label>
+                          <Controller
+                            name="hostel"
+                            control={form.control}
+                            render={({ field }) => (
+                              <HostelCombobox
+                                value={field.value || undefined}
+                                onChange={field.onChange}
+                              />
+                            )}
+                          />
+                        </div>
+                      )}
+
+                      {role === "alumni" && (
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium mb-1">Current Profession (Optional)</label>
+                          <input {...register("currentProfession")} placeholder="Software Engineer" className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" />
+                        </div>
+                      )}
                     </div>
                   )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Department</label>
-                      <select {...register("department")} className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none">
-                        <option value="">Select Department...</option>
-                        <option value="Botany">Botany</option>
-                        <option value="Chemistry">Chemistry</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Physics">Physics</option>
-                        <option value="Mathematics">Mathematics</option>
-                        <option value="English">English</option>
-                        <option value="Economics">Economics</option>
-                        <option value="Commerce">Commerce</option>
-                        <option value="Zoology">Zoology</option>
-                        <option value="History">History</option>
-                        <option value="Political Science">Political Science</option>
-                        {/* Will populate full list dynamically later */}
-                      </select>
-                      {errors.department && <p className="text-destructive text-xs mt-1">{errors.department.message}</p>}
-                    </div>
-                    {role === "student" && (
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Hostel (Optional)</label>
-                        <select {...register("hostel")} className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none">
-                          <option value="">Day Scholar (None)</option>
-                          <option value="EAST HOSTEL">EAST HOSTEL</option>
-                          <option value="WEST HOSTEL">WEST HOSTEL</option>
-                          <option value="Parija">Parija</option>
-                          <option value="Kathajodi">Kathajodi</option>
-                        </select>
-                      </div>
-                    )}
-                    {role === "alumni" && (
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Current Profession (Optional)</label>
-                        <input {...register("currentProfession")} placeholder="Software Engineer" className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" />
-                      </div>
-                    )}
-                  </div>
 
                   {role === "student" && (
                     <div>
@@ -253,15 +328,32 @@ export default function RegisterPage() {
 
                   {role === "teacher" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium mb-1">Department</label>
+                        <Controller
+                          name="department"
+                          control={form.control}
+                          render={({ field }) => (
+                            <DepartmentCombobox
+                              value={field.value || undefined}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
+                        {errors.department && <p className="text-destructive text-xs mt-1">{errors.department.message}</p>}
+                      </div>
                       <div>
                         <label className="block text-sm font-medium mb-1">Designation</label>
-                        <select {...register("designation")} className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none">
-                          <option value="">Select Designation...</option>
-                          <option value="Assistant Professor">Assistant Professor</option>
-                          <option value="Associate Professor">Associate Professor</option>
-                          <option value="Professor">Professor</option>
-                          <option value="Guest Faculty">Guest Faculty</option>
-                        </select>
+                        <Controller
+                          name="designation"
+                          control={form.control}
+                          render={({ field }) => (
+                            <DesignationCombobox
+                              value={field.value || undefined}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
                         {errors.designation && <p className="text-destructive text-xs mt-1">{errors.designation.message}</p>}
                       </div>
                       <div>
@@ -274,6 +366,9 @@ export default function RegisterPage() {
                 </motion.div>
               ) : (
                 <motion.div key="no" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+                  <div className="bg-primary/10 p-4 rounded-xl border border-primary/20 text-sm text-primary">
+                    Non-Ravenshawvians can join as Participants and participate in eligible State-Level Competitions.
+                  </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">University / College Name</label>
                     <input {...register("universityName")} placeholder="e.g. Utkal University" className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" />
@@ -282,23 +377,78 @@ export default function RegisterPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-1">Your Role</label>
-                      <select {...register("role")} className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none">
-                        <option value="student">Student</option>
-                        <option value="alumni">Alumni</option>
-                        <option value="teacher">Teacher</option>
-                      </select>
+                      <input readOnly value="Participant" className="w-full px-4 py-3 rounded-xl border bg-muted focus:outline-none text-muted-foreground cursor-not-allowed" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium mb-1">Level</label>
-                      <select {...register("level")} className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none">
-                        <option value="">Select Level...</option>
-                        <option value="+2">+2 (Higher Secondary)</option>
-                        <option value="UG">Undergraduate (UG)</option>
-                        <option value="PG">Postgraduate (PG)</option>
-                        <option value="PhD">Doctorate (PhD)</option>
-                      </select>
+                      <Controller
+                        name="level"
+                        control={form.control}
+                        render={({ field }) => (
+                          <LevelCombobox
+                            value={field.value || undefined}
+                            onChange={field.onChange}
+                          />
+                        )}
+                      />
                       {errors.level && <p className="text-destructive text-xs mt-1">{errors.level.message}</p>}
                     </div>
+
+                    {level === "+2" && (
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Stream</label>
+                        <Controller
+                          name="stream"
+                          control={form.control}
+                          render={({ field }) => (
+                            <StreamCombobox
+                              value={field.value || undefined}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
+                        {errors.stream && <p className="text-destructive text-xs mt-1">{errors.stream.message}</p>}
+                      </div>
+                    )}
+                    
+                    {level && level !== "+2" && (
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Department</label>
+                        <Controller
+                          name="department"
+                          control={form.control}
+                          render={({ field }) => (
+                            <DepartmentCombobox
+                              value={field.value || undefined}
+                              onChange={field.onChange}
+                            />
+                          )}
+                        />
+                        {errors.department && <p className="text-destructive text-xs mt-1">{errors.department.message}</p>}
+                      </div>
+                    )}
+
+                    {level && (
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Entry Year</label>
+                        <input {...register("entryYear")} type="text" inputMode="numeric" maxLength={4} placeholder="e.g. 2024" className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" />
+                        {errors.entryYear && <p className="text-destructive text-xs mt-1">{errors.entryYear.message}</p>}
+                      </div>
+                    )}
+
+                    {level === "+2" ? (
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-muted-foreground">Exit Year (Auto-calculated)</label>
+                        <input readOnly value={entryYear && /^\d{4}$/.test(entryYear) ? parseInt(entryYear) + 2 : ""} className="w-full px-4 py-3 rounded-xl border bg-muted focus:outline-none text-muted-foreground cursor-not-allowed" />
+                        <p className="text-xs text-muted-foreground mt-1">+2 is a two-year programme.</p>
+                      </div>
+                    ) : level ? (
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Exit Year</label>
+                        <input {...register("exitYear")} type="text" inputMode="numeric" maxLength={4} placeholder="e.g. 2026" className="w-full px-4 py-3 rounded-xl border bg-background focus:ring-2 focus:ring-primary outline-none" />
+                        {errors.exitYear && <p className="text-destructive text-xs mt-1">{errors.exitYear.message}</p>}
+                      </div>
+                    ) : null}
                   </div>
                 </motion.div>
               )}

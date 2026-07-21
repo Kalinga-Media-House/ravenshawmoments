@@ -5,26 +5,29 @@ export class ContentRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
   /**
-   * Fetches latest events across all ecosystems
+   * Fetches latest events across all ecosystems using the Unified Event Engine
    */
   async getGlobalEvents(limit = 6): Promise<SharedEventMetadata[]> {
-    // We run parallel queries to fetch events from departments, hostels, and orgs
-    const [deptRes, hostelRes, orgRes] = await Promise.all([
-      this.supabase.from("department_events").select("*").order("start_time", { ascending: true }).limit(limit),
-      this.supabase.from("hostel_events").select("*").order("start_time", { ascending: true }).limit(limit),
-      this.supabase.from("organization_events").select("*").order("start_time", { ascending: true }).limit(limit),
-    ]);
+    const { data, error } = await this.supabase
+      .from("events")
+      .select("*")
+      .gte('event_start_time', new Date().toISOString()) // Assuming we want upcoming events
+      .order("event_start_time", { ascending: true })
+      .limit(limit);
 
-    const allEvents = [
-      ...(deptRes.data || []).map(e => ({ ...e, source: 'department' })),
-      ...(hostelRes.data || []).map(e => ({ ...e, source: 'hostel' })),
-      ...(orgRes.data || []).map(e => ({ ...e, source: 'organization' }))
-    ] as SharedEventMetadata[];
+    if (error) {
+      console.error("Error fetching global events:", error);
+      return [];
+    }
 
-    // Sort by date and slice
-    return allEvents
-      .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
-      .slice(0, limit);
+    // Map unified events back to SharedEventMetadata (or just return as is if types overlap)
+    return (data || []).map((e: any) => ({
+      ...e,
+      source: e.scope_type.toLowerCase(),
+      start_time: e.event_start_time,
+      end_time: e.event_end_time,
+      type: e.event_category,
+    })) as SharedEventMetadata[];
   }
 
   /**

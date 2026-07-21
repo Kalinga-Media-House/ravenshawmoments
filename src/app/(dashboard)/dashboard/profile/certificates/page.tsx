@@ -69,8 +69,11 @@ export default async function DashboardProfileCertificatesPage() {
           avatarUrl={profile.avatar_url}
           coverUrl={profile.cover_url}
           profileType={profile.profile_type}
+          level={profile.level}
+          stream={profile.stream}
           departmentName={profile.department_name}
           batchYear={profile.batch_year}
+          universityName={profile.university_name}
           isVerified={profile.is_verified}
           isOwner={true}
           isClaimed={profile.is_profile_claimed}
@@ -109,6 +112,7 @@ export default async function DashboardProfileCertificatesPage() {
                 <AcademicInfoCard
                   departmentName={profile.department_name}
                   batchYear={profile.batch_year}
+          universityName={profile.university_name}
                   rollNumber={profile.roll_number}
                   registrationNumber={profile.registration_number}
                   isVerified={profile.is_verified}

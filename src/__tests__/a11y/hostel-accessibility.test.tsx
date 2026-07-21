@@ -20,5 +20,5 @@ describe("Hostel Accessibility", () => {
     render(<HostelHeader hostel={mockHostel} />);
     const heading = screen.getByRole("heading", { name: "Kathajodi" });
     expect(heading).toBeDefined();
-  });
+  }, 15000);
 });

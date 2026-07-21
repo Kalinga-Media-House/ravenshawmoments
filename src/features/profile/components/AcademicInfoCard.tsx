@@ -5,9 +5,12 @@ import { cn } from "@/lib/utils";
 import { GraduationCap, Building2, BookOpen, Hash, CheckCircle2, AlertCircle } from "lucide-react";
 
 export interface AcademicInfoCardProps {
+  level?: string | null;
+  stream?: string | null;
   departmentName?: string | null;
   programName?: string | null;
   batchYear?: string | null;
+  universityName?: string | null;
   rollNumber?: string | null;
   registrationNumber?: string | null;
   isVerified?: boolean;
@@ -16,9 +19,12 @@ export interface AcademicInfoCardProps {
 }
 
 export function AcademicInfoCard({
+  level,
+  stream,
   departmentName,
   programName,
   batchYear,
+  universityName,
   rollNumber,
   registrationNumber,
   isVerified = false,
@@ -26,10 +32,10 @@ export function AcademicInfoCard({
   className,
 }: AcademicInfoCardProps) {
   return (
-    <Card className={cn("overflow-hidden shadow-xs border bg-card", className)}>
-      <CardHeader className="pb-3 border-b border-border/40 bg-muted/20 flex flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
-          <GraduationCap className="h-4 w-4 text-primary" />
+    <Card className={cn("overflow-hidden heritage-card-glass", className)}>
+      <CardHeader className="pb-3 border-b border-white/10 bg-white/5 flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-base font-semibold flex items-center gap-2 heritage-card-title">
+          <GraduationCap className="h-4 w-4 heritage-icon" />
           <span>Academic Credentials</span>
         </CardTitle>
 
@@ -48,61 +54,87 @@ export function AcademicInfoCard({
 
       <CardContent className="p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
-              <Building2 className="h-4.5 w-4.5" />
-            </div>
-            <div>
-              <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
-                Department
+          {level === "+2" ? (
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 heritage-icon shrink-0 mt-0.5">
+                <Building2 className="h-4.5 w-4.5" />
               </div>
-              <div className="text-sm font-semibold text-foreground mt-0.5">
-                {departmentName || <span className="text-muted-foreground font-normal italic">Not specified</span>}
+              <div>
+                <div className="text-[11px] uppercase tracking-wider font-semibold heritage-card-muted">
+                  Stream
+                </div>
+                <div className="text-sm font-semibold heritage-card-title mt-0.5">
+                  {stream || <span className="heritage-card-muted font-normal italic">Not specified</span>}
+                </div>
               </div>
             </div>
-          </div>
+          ) : universityName ? (
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 heritage-icon shrink-0 mt-0.5">
+                <Building2 className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium leading-none heritage-card-title mb-1.5">University / College Name</p>
+                <p className="text-[13px] heritage-card-muted">{universityName}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 heritage-icon shrink-0 mt-0.5">
+                <Building2 className="h-4.5 w-4.5" />
+              </div>
+              <div>
+                <div className="text-[11px] uppercase tracking-wider font-semibold heritage-card-muted">
+                  Department
+                </div>
+                <div className="text-sm font-semibold heritage-card-title mt-0.5">
+                  {departmentName || <span className="heritage-card-muted font-normal italic">Not specified</span>}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 heritage-icon shrink-0 mt-0.5">
               <BookOpen className="h-4.5 w-4.5" />
             </div>
             <div>
-              <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+              <div className="text-[11px] uppercase tracking-wider font-semibold heritage-card-muted">
                 Course Program
               </div>
-              <div className="text-sm font-semibold text-foreground mt-0.5">
-                {programName || <span className="text-muted-foreground font-normal italic">Not specified</span>}
+              <div className="text-sm font-semibold heritage-card-title mt-0.5">
+                {programName || <span className="heritage-card-muted font-normal italic">Not specified</span>}
               </div>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 heritage-icon shrink-0 mt-0.5">
               <GraduationCap className="h-4.5 w-4.5" />
             </div>
             <div>
-              <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+              <div className="text-[11px] uppercase tracking-wider font-semibold heritage-card-muted">
                 Batch Year
               </div>
-              <div className="text-sm font-semibold text-foreground mt-0.5">
-                {batchYear ? `Batch of ${batchYear}` : <span className="text-muted-foreground font-normal italic">Not specified</span>}
+              <div className="text-sm font-semibold heritage-card-title mt-0.5">
+                {batchYear ? `Batch of ${batchYear.replace('-', '–')}` : <span className="heritage-card-muted font-normal italic">Not specified</span>}
               </div>
             </div>
           </div>
 
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 mt-0.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 heritage-icon shrink-0 mt-0.5">
               <Hash className="h-4.5 w-4.5" />
             </div>
             <div>
-              <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+              <div className="text-[11px] uppercase tracking-wider font-semibold heritage-card-muted">
                 Roll Number
               </div>
-              <div className="text-sm font-semibold text-foreground mt-0.5">
+              <div className="text-sm font-semibold heritage-card-title mt-0.5">
                 {rollNumber ? (
-                  <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs">{rollNumber}</span>
+                  <span className="font-mono bg-white/10 px-1.5 py-0.5 rounded text-xs">{rollNumber}</span>
                 ) : (
-                  <span className="text-muted-foreground font-normal italic">Protected / Unclaimed</span>
+                  <span className="heritage-card-muted font-normal italic">Protected / Unclaimed</span>
                 )}
               </div>
             </div>
@@ -110,9 +142,9 @@ export function AcademicInfoCard({
         </div>
 
         {registrationNumber && (
-          <div className="pt-3 border-t border-border/40 text-xs text-muted-foreground flex items-center justify-between">
+          <div className="pt-3 border-t border-white/10 text-xs heritage-card-muted flex items-center justify-between">
             <span>University Reg No.</span>
-            <span className="font-mono font-medium text-foreground bg-muted px-1.5 py-0.5 rounded">
+            <span className="font-mono font-medium heritage-card-title bg-white/10 px-1.5 py-0.5 rounded">
               {registrationNumber}
             </span>
           </div>

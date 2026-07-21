@@ -1,0 +1,1718 @@
+<USER_REQUEST>
+DO NOT CREATE MIGRATION 045.
+DO NOT APPLY SQL.
+DO NOT MODIFY PRODUCTION CODE.
+DO NOT BEGIN PHASE C.
+
+The latest report is substantially improved, but migration 045 remains unapproved.
+
+The final SQL still contains compile-risk defects, missing field mutations, unsafe JSON-null handling, incomplete security evidence, incomplete invariants, and a test plan that does not match the requested coverage.
+
+Correct every issue below.
+
+==================================================
+1. FIX THE INVALID LIFECYCLE ROW ASSIGNMENT
+==================================================
+
+The SQL declares:
+
+v_comp public.competitions%ROWTYPE;
+
+but later executes:
+
+SELECT
+  is_public,
+  published_at,
+  scheduled_publish_at
+INTO v_comp
+FROM public.competitions
+WHERE id = p_competition_id;
+
+Do not assign three selected columns into a full competitions row variable.
+
+Use dedicated variables:
+
+v_stored_is_public boolean;
+
+v_stored_published_at timestamptz;
+
+v_stored_scheduled_publish_at timestamptz;
+
+Then:
+
+SELECT
+  c.is_public,
+  c.published_at,
+  c.scheduled_publish_at
+INTO
+  v_stored_is_public,
+  v_stored_published_at,
+  v_stored_scheduled_publish_at
+FROM public.competitions AS c
+WHERE c.id = p_competition_id;
+
+Use those variables in every lifecycle post-flight invariant.
+
+Return evidence that the final migration parses successfully.
+
+==================================================
+2. FIX FUNCTION SET CONFIGURATION SYNTAX
+==================================================
+
+The function currently uses:
+
+SET search_path = pg_catalog, lock_timeout = '5s'
+
+Verify whether this is valid PostgreSQL CREATE FUNCTION syntax.
+
+Use separate SET clauses if required:
+
+SET search_path = pg_catalog
+SET lock_timeout = '5s'
+
+Do not return SQL that has not been syntax-checked.
+
+Return the exact final function header.
+
+==================================================
+3. PATCH EVERY ADVERTISED FIELD
+==================================================
+
+The allowed-key list and patch/null contract include fields that are not actually processed.
+
+At minimum, the SQL currently does not visibly patch:
+
+important_information is handled.
+
+eligibility_configuration is handled.
+
+But audit all fields, especially:
+
+featured_media_id
+
+short_description
+
+description
+
+rules
+
+venue fields
+
+reporting fields
+
+all certificate booleans
+
+registration fields
+
+organizer fields
+
+submission fields
+
+participant fields
+
+and every key in v_allowed_keys.
+
+Create a complete field matrix with:
+
+JSON key.
+
+Database column.
+
+JSON type.
+
+Nullable?
+
+Normalization.
+
+Patch SQL location.
+
+Effective-state validation.
+
+Publication validation.
+
+Post-flight validation.
+
+Every allowed key must either:
+
+A. Have executable patch handling.
+
+or:
+
+B. Be removed from v_allowed_keys.
+
+No silently ignored allowed keys.
+
+==================================================
+4. ADD MISSING PATCH HANDLING FOR ANY OMITTED FIELDS
+==================================================
+
+The report claims:
+
+“All JSON keys map exactly to identically named columns.”
+
+That is not sufficient.
+
+Prove that every field is assigned into v_comp and included in the final UPDATE.
+
+If any field is missing, add it.
+
+Do not permit an accepted payload key to produce a successful no-op.
+
+==================================================
+5. FIX JSON NULL HANDLING FOR SUBMISSION TIMESTAMPS
+==================================================
+
+Current code does:
+
+IF v_sub_req ? 'opens_at' THEN
+  ...
+  (v_sub_req->>'opens_at')::timestamptz
+END IF;
+
+The ? operator is true when the key exists with JSON null.
+
+Therefore:
+
+"opens_at": null
+
+enters timestamp parsing.
+
+Define the exact contract.
+
+Recommended:
+
+opens_at and closes_at:
+
+- Omitted → key omitted from normalized stored JSON.
+- Explicit JSON null → stored JSON null or rejected consistently.
+- String → safely parsed and normalized.
+
+Do not cast JSON null through ->>.
+
+Apply the same rule to:
+
+instructions.
+
+maximum_file_count.
+
+maximum_file_size_mb.
+
+accepted_extensions.
+
+accepted_mime_types.
+
+==================================================
+6. FIX JSONB_SET WITH SQL NULL
+==================================================
+
+Current code uses:
+
+jsonb_set(
+  v_new_sub_req,
+  '{instructions}',
+  to_jsonb(NULLIF(...))
+)
+
+Verify behavior when NULLIF returns SQL NULL.
+
+Do not assume to_jsonb(SQL NULL) produces JSON null.
+
+Use explicit JSON null where required:
+
+'null'::jsonb
+
+or omit the key according to the contract.
+
+Return executable SQL for all optional normalized submission keys.
+
+==================================================
+7. VALIDATE SUBMISSION TIMESTAMP TYPES BEFORE CAST
+==================================================
+
+For opens_at and closes_at:
+
+Require JSON type:
+
+string
+
+or explicit null if the contract permits it.
+
+Do not rely on exception handling alone.
+
+A number, boolean, object, or array must receive a field-specific type error.
+
+==================================================
+8. FIX SECOND UNCHECKED SUBMISSION TIMESTAMP CAST
+==================================================
+
+The code safely parses opens_at and closes_at into normalized JSON.
+
+It then repeats unchecked casts:
+
+(v_sub_req->>'opens_at')::timestamptz
+
+(v_sub_req->>'closes_at')::timestamptz
+
+inside chronology validation.
+
+Use already parsed typed variables:
+
+v_submission_opens_at timestamptz;
+
+v_submission_closes_at timestamptz;
+
+Never parse the same timestamp twice.
+
+==================================================
+9. ADD SUBMISSION BUSINESS MAXIMUMS
+==================================================
+
+The previous instruction required:
+
+type.
+
+integer range.
+
+business maximums.
+
+The SQL currently checks only:
+
+> 0
+
+Define evidence-backed limits for:
+
+maximum_file_count.
+
+maximum_file_size_mb.
+
+If the frontend already has limits, use those exact limits.
+
+If no contract exists, identify the missing product decision instead of inventing limits.
+
+==================================================
+10. FIX INTEGER VALIDATION
+==================================================
+
+Current integer parsing relies on:
+
+::integer
+
+inside exception blocks.
+
+This rejects many invalid values, but the report must explicitly cover:
+
+fractional numbers.
+
+integer overflow.
+
+negative values.
+
+zero.
+
+business maximum.
+
+Apply this consistently to:
+
+min_team_size.
+
+max_team_size.
+
+maximum_file_count.
+
+maximum_file_size_mb.
+
+display_order.
+
+Do not claim complete range validation until all fields have explicit business rules.
+
+==================================================
+11. VALIDATE TEAM VALUES DURING EVERY PATCH
+==================================================
+
+Team rules currently run only during strict publication validation.
+
+This allows invalid draft state such as:
+
+allow_team = true
+
+min_team_size = -100
+
+max_team_size = 0
+
+Define the draft contract.
+
+Recommended:
+
+Whenever supplied:
+
+min_team_size and max_team_size must be positive integers.
+
+Whenever the final merged state has both values:
+
+max_team_size >= min_team_size.
+
+Publication may add stricter completeness rules.
+
+Do not allow structurally invalid values merely because the Competition is a draft.
+
+==================================================
+12. FIX ORGANIZER EXCLUSIVITY BEFORE UPDATE
+==================================================
+
+The code checks organizer exclusivity only after:
+
+UPDATE public.competitions
+
+Although an exception rolls back the transaction, invalid state should be rejected before mutation.
+
+Add preflight:
+
+pg_catalog.num_nonnulls(
+  v_comp.department_id,
+  v_comp.hostel_id,
+  v_comp.organization_id
+) <= 1
+
+Keep the post-flight invariant as defense in depth.
+
+==================================================
+13. DEFINE LEGACY INACTIVE ORGANIZER BEHAVIOR
+==================================================
+
+Current code validates every effective organizer as active during every save.
+
+Therefore an unrelated title edit to an old draft with an inactive department fails.
+
+Define the exact rule.
+
+Recommended:
+
+If department_id/hostel_id/organization_id is newly supplied or changed:
+
+referenced entity must exist and be active.
+
+For strict publish/schedule/public-preserve validation:
+
+effective organizer must exist and be active.
+
+For an unrelated draft edit:
+
+an unchanged legacy inactive organizer may remain.
+
+Apply the same reasoning to category_id.
+
+==================================================
+14. IMPLEMENT THE CATEGORY DRAFT RULE
+==================================================
+
+The previous correction requested:
+
+For newly patched category_id:
+
+require active category immediately.
+
+For an unchanged legacy draft reference:
+
+allow it during non-strict draft editing.
+
+For publish/schedule/public preserve:
+
+effective category must exist and be active.
+
+The current SQL validates category only during strict publication.
+
+Implement the complete rule and test it.
+
+==================================================
+15. VALIDATE FEATURED MEDIA REFERENCE
+==================================================
+
+The SQL parses featured_media_id but does not validate whether the referenced media row exists or is eligible.
+
+Audit the actual foreign key.
+
+Return:
+
+referenced table.
+
+foreign-key behavior.
+
+whether soft-deleted/inactive media can be selected.
+
+whether publication requires valid media.
+
+Do not invent a rule without schema evidence.
+
+==================================================
+16. NORMALIZE PARTICIPANT TYPES BEFORE STORAGE
+==================================================
+
+Current code validates participant values but stores:
+
+p_payload->'eligible_participant_types'
+
+rather than the validated array.
+
+Construct and store a normalized JSON array.
+
+Define whether whitespace is:
+
+rejected.
+
+or trimmed.
+
+Recommended:
+
+Trim values.
+
+Map only to exact canonical values:
+
+Student
+
+Teacher
+
+Alumni
+
+External Participant
+
+Store the canonical array.
+
+==================================================
+17. NORMALIZE IMPORTANT INFORMATION BEFORE STORAGE
+==================================================
+
+Current code builds:
+
+v_used_info
+
+with trimmed strings.
+
+It then stores:
+
+p_payload->'important_information'
+
+Therefore original whitespace remains.
+
+Store the normalized array.
+
+The validation representation and storage representation must match.
+
+==================================================
+18. VALIDATE ELIGIBILITY_CONFIGURATION
+==================================================
+
+Current SQL accepts any JSON object.
+
+Return evidence for its actual expected structure.
+
+If a Zod schema or TypeScript type exists, mirror it.
+
+If it is intentionally opaque JSON:
+
+state that explicitly.
+
+define ownership of validation.
+
+do not claim full workflow validation for this field.
+
+==================================================
+19. COMPLETE SUBMISSION POST-FLIGHT INVARIANTS
+==================================================
+
+The report says:
+
+AC-AF executable invariants exist in AG.
+
+They do not.
+
+There is no complete stored submission invariant.
+
+After UPDATE, when submission_requirements is patched:
+
+read the stored JSON.
+
+Verify:
+
+object/null type.
+
+allowed keys only.
+
+submission_required boolean.
+
+optional field types.
+
+normalized instructions.
+
+normalized timestamp representation.
+
+positive/range-limited integers.
+
+normalized extension values.
+
+normalized MIME values.
+
+no duplicate extensions.
+
+no duplicate MIME values.
+
+extension allowlist.
+
+MIME allowlist.
+
+all bidirectional compatibility pairs.
+
+required=true completeness.
+
+opens_at <= closes_at.
+
+closes_at <= Competition ends_at where required.
+
+Do not claim complete submission invariants without this SQL.
+
+==================================================
+20. VALIDATE ENABLED REFUND LEGAL DOCUMENT BEFORE MUTATION
+==================================================
+
+The current SQL parses:
+
+legal_document_version_id
+
+but does not query the legal-document tables before storing it.
+
+The only legal-document invariant runs later and only when:
+
+registration_fee > 0
+
+Therefore an enabled refund on a free draft can store an invalid or nonexistent legal version unless a foreign key happens to reject it.
+
+For every enabled refund configuration:
+
+preflight validate:
+
+version exists.
+
+parent document exists.
+
+document_type = refund_policy.
+
+parent active.
+
+version published.
+
+version effective according to the chosen lifecycle rule.
+
+Then store.
+
+==================================================
+21. APPLY REFUND POST-FLIGHT TO EVERY ENABLED CONFIGURATION
+==================================================
+
+The report says:
+
+“If enabled=true, validate legal document/version.”
+
+The final post-flight SQL checks only paid competitions.
+
+Separate the rules:
+
+A. Every enabled refund configuration must be internally valid.
+
+B. Every paid published/scheduled Competition must have an enabled valid refund configuration.
+
+Implement both preflight and post-flight.
+
+==================================================
+22. VERIFY LEGAL VERSION STATUS COLUMNS
+==================================================
+
+The report refers to:
+
+published version.
+
+currently effective version.
+
+But SQL checks only:
+
+v.published_at <= now()
+
+v.effective_at <= now()
+
+Audit the actual schema.
+
+Does legal_document_versions have:
+
+status?
+
+is_published?
+
+published_at?
+
+effective_at?
+
+expires_at?
+
+superseded_at?
+
+revoked_at?
+
+Do not infer “published” or “currently effective” from incomplete timestamp checks.
+
+Return exact migration/type evidence.
+
+==================================================
+23. FIX REFUND DEADLINE CONTRACT
+==================================================
+
+The report defines only:
+
+refund_deadline <= starts_at
+
+This is incomplete.
+
+Return product evidence for whether the deadline must also relate to:
+
+registration_open_at.
+
+registration_close_at.
+
+current time.
+
+If no product rule exists, explicitly state that only:
+
+deadline <= starts_at
+
+is approved.
+
+Do not label it a complete chronology without evidence.
+
+==================================================
+24. VALIDATE REFUND PERCENTAGE FINITENESS
+==================================================
+
+Explicitly reject:
+
+NaN.
+
+negative infinity.
+
+positive infinity if reachable.
+
+Apply policy-specific range rules only after finite-number validation.
+
+==================================================
+25. FIX REFUND UPSERT SCHEMA EVIDENCE
+==================================================
+
+The SQL assumes:
+
+ON CONFLICT (competition_id)
+
+is valid.
+
+Return exact evidence for:
+
+unique constraint/index on competition_id.
+
+If absent, the migration will fail.
+
+Do not assume one-row-per-Competition without schema evidence.
+
+==================================================
+26. COMPLETE PRIZE POST-FLIGHT ID SET VALIDATION
+==================================================
+
+The report claims:
+
+Every expected incoming prize exists.
+
+No unexpected prize remains.
+
+The SQL checks only:
+
+row count.
+
+display-order uniqueness.
+
+position uniqueness.
+
+Add explicit ID-set checks:
+
+Every preserved existing ID exists after mutation.
+
+Every generated ID is captured.
+
+No stored ID exists outside v_preserved_prize_ids.
+
+Stored ID count equals preserved ID count.
+
+No duplicate IDs in preserved array.
+
+==================================================
+27. COMPLETE PRIZE POST-FLIGHT VALUE VALIDATION
+==================================================
+
+The report claims normalized values match incoming values.
+
+The SQL does not verify that.
+
+After mutation, verify each stored row against the normalized validated representation:
+
+position_name.
+
+prize_title.
+
+monetary_amount.
+
+currency.
+
+includes_trophy.
+
+includes_certificate.
+
+additional_description.
+
+display_order.
+
+Build a normalized temporary JSON representation or typed record set before mutation.
+
+Compare stored rows to that representation.
+
+==================================================
+28. NORMALIZE PRIZES BEFORE MUTATION
+==================================================
+
+Current code validates raw v_prize and normalizes again during mutation.
+
+Build one normalized prize array before any write.
+
+Use that exact normalized array for:
+
+preflight duplicate checks.
+
+UPDATE.
+
+INSERT.
+
+post-flight comparisons.
+
+Do not duplicate normalization logic across phases.
+
+==================================================
+29. ADD PRIZE BUSINESS LIMITS
+==================================================
+
+Return evidence-backed limits for:
+
+display_order.
+
+monetary_amount.
+
+position_name length.
+
+prize_title length.
+
+additional_description length.
+
+If database columns already impose limits, cite them.
+
+If not, identify the required product decision.
+
+==================================================
+30. FIX DELETE EXCEPT PRESERVED-ID LOGIC
+==================================================
+
+Current SQL uses:
+
+id != ALL(v_preserved_prize_ids)
+
+Verify behavior for:
+
+empty array.
+
+NULL elements.
+
+one element.
+
+multiple elements.
+
+Prefer a clearly auditable form such as:
+
+NOT (id = ANY(v_preserved_prize_ids))
+
+after proving the array is non-null and contains no nulls.
+
+Keep the explicit empty-array DELETE branch.
+
+==================================================
+31. ADD DATABASE CONSTRAINT AUDIT FOR PRIZES
+==================================================
+
+The report still does not provide evidence for:
+
+UNIQUE (competition_id, display_order).
+
+normalized position uniqueness.
+
+Return exact index/constraint evidence.
+
+If absent:
+
+state that RPC-only validation is race-sensitive unless the Competition row lock fully serializes all writers.
+
+Explain whether all prize writers are forced through this RPC.
+
+==================================================
+32. FIX RACE-SAFETY CLAIMS
+==================================================
+
+The Competition row is locked FOR UPDATE.
+
+Explain whether every prize mutation path also locks the same Competition row.
+
+If direct table writes or another RPC exist, application-level uniqueness checks may race.
+
+Audit all write paths.
+
+Do not claim atomic uniqueness without proving write-path serialization or adding database constraints.
+
+==================================================
+33. FIX EXPLORE RETURN QUERY SHAPE
+==================================================
+
+The CTE selects:
+
+SELECT c, ROW_NUMBER() ... AS rn
+
+where c is a composite row.
+
+Then returns:
+
+SELECT (c).*
+
+Verify that this compiles correctly for:
+
+RETURNS SETOF public.competitions.
+
+Prefer a clearer structure:
+
+WITH ranked AS (
+  SELECT
+    c.*,
+    row_number() OVER (...) AS rn
+  FROM public.competitions AS c
+  ...
+)
+SELECT
+  [explicit Competition columns]
+FROM ranked
+WHERE rn <= p_limit
+
+or use a proven composite-row implementation.
+
+Return syntax-test evidence.
+
+==================================================
+34. FIX EXPLORE TIMEZONE CLAIM
+==================================================
+
+The function partitions months in Asia/Kolkata, but:
+
+p_start and p_end are timestamptz bounds supplied by the caller.
+
+The function does not itself convert local month inputs into UTC.
+
+Clarify:
+
+- Caller constructs UTC bounds corresponding to Asia/Kolkata month boundaries.
+- Function uses inclusive p_start and exclusive p_end.
+- Function partitions matching rows by Asia/Kolkata month.
+
+Do not say the RPC itself dynamically creates month bounds unless it actually does.
+
+==================================================
+35. PROVE EXPLORE RLS AND PRIVILEGES
+==================================================
+
+The report still gives conclusions without exact evidence.
+
+Return:
+
+ALTER TABLE statement enabling RLS.
+
+Exact SELECT policy SQL.
+
+Exact table grants.
+
+Exact function grants.
+
+Whether anon/authenticated can SELECT all columns returned by SETOF competitions.
+
+Whether SECURITY INVOKER applies RLS.
+
+Whether table-owner or BYPASSRLS execution changes behavior.
+
+==================================================
+36. PROVE SAVE RPC OWNER AND SECURITY MODEL
+==================================================
+
+The report says:
+
+“Must execute as SECURITY DEFINER OWNER TO postgres.”
+
+That is a conclusion, not evidence.
+
+Return:
+
+existing SECURITY DEFINER RPC ownership convention.
+
+migration execution role.
+
+whether postgres exists.
+
+whether ALTER FUNCTION OWNER TO postgres is permitted.
+
+whether postgres has BYPASSRLS.
+
+why bypassing RLS is required.
+
+what explicit authorization replaces RLS.
+
+Do not approve ownership until verified.
+
+==================================================
+37. RETURN THE ACTUAL AUTHORIZATION HELPER DEFINITION
+==================================================
+
+The report says:
+
+is_competition_admin securely inspects JWT.
+
+Return the exact function definition.
+
+Include:
+
+language.
+
+SECURITY INVOKER/DEFINER.
+
+owner.
+
+search_path.
+
+dependencies.
+
+role lookup.
+
+current-profile lookup.
+
+Do not summarize only.
+
+==================================================
+38. PROVE APP.CURRENT_PROFILE_ID SAFETY
+==================================================
+
+Return the exact definition of:
+
+app.current_profile_id()
+
+Show whether it uses:
+
+auth.uid().
+
+request.jwt.claims.
+
+a profiles lookup.
+
+current_user.
+
+session_user.
+
+Explain its behavior inside SECURITY DEFINER.
+
+Do not use the phrase “utterly secure.”
+
+Use evidence-based security language.
+
+==================================================
+39. AUDIT LOCK ORDER AND DEADLOCK RISK
+==================================================
+
+The save RPC locks:
+
+Competition row.
+
+Then mutates prizes.
+
+Then mutates refund configuration.
+
+Audit other write paths for conflicting lock order.
+
+Return:
+
+known lock order.
+
+whether deadlock risk exists.
+
+why lock_timeout is needed.
+
+whether 5 seconds matches project conventions.
+
+==================================================
+40. FIX REPORT SECTION AC-AF
+==================================================
+
+Do not write:
+
+“See section AG.”
+
+Provide the actual executable invariant SQL under each section:
+
+AC. Lifecycle invariants.
+
+AD. Submission invariants.
+
+AE. Prize invariants.
+
+AF. Refund invariants.
+
+Then include the same SQL consistently in AG.
+
+==================================================
+41. FIX TEST 5 EXPECTED DATABASE STATE
+==================================================
+
+Test 5 says:
+
+“empty valid draft”
+
+and:
+
+“DB updated.”
+
+An empty preserve payload may only update updated_at because the RPC always performs UPDATE.
+
+State the exact expected database changes.
+
+Do not use vague wording.
+
+==================================================
+42. FIX TEST 14 AGAINST ACTUAL SQL
+==================================================
+
+Test 14 expects:
+
+timestamp number → type mismatch.
+
+But current starts_at handling does not check JSON type before cast.
+
+It catches the cast and returns:
+
+Invalid starts_at.
+
+Either:
+
+add explicit type validation.
+
+or:
+
+change the expected error.
+
+Prefer explicit type validation.
+
+==================================================
+43. FIX TEST 34 INTEGER SEMANTICS
+==================================================
+
+Prove PostgreSQL behavior for:
+
+(2.5)::integer
+
+Do not assume it throws.
+
+Use explicit whole-number validation before integer cast.
+
+The test must match actual PostgreSQL behavior.
+
+==================================================
+44. FIX TESTS 35-42 DRAFT/PUBLIC ASSUMPTIONS
+==================================================
+
+Several tests expect structural validation on drafts, but the SQL applies many rules only during strict publication.
+
+Examples:
+
+Test 35.
+
+Test 36.
+
+Test 39.
+
+Test 40.
+
+Test 41.
+
+Clarify which validations apply:
+
+always.
+
+only when publishing/scheduling/public-preserve.
+
+Then align SQL and tests.
+
+==================================================
+45. FIX TEST 45 PAYLOAD KEYS
+==================================================
+
+The test uses:
+
+eligible
+
+level
+
+but the RPC accepts:
+
+eligible_participant_types
+
+competition_level
+
+Every test payload must use exact API keys.
+
+==================================================
+46. FIX TESTS 51-54 PAYLOAD SHAPE
+==================================================
+
+Tests use shorthand:
+
+ext.
+
+mime.
+
+The actual payload requires:
+
+submission_requirements: {
+  submission_required: ...,
+  accepted_extensions: [...],
+  accepted_mime_types: [...]
+}
+
+Use exact executable payloads.
+
+==================================================
+47. ADD ALL MISSING MIME PAIR TESTS
+==================================================
+
+The 80 tests still do not cover all pairs.
+
+Required:
+
+pdf.
+
+doc.
+
+docx.
+
+jpg.
+
+jpeg.
+
+jpg + jpeg.
+
+png.
+
+webp.
+
+mp4.
+
+mp3.
+
+zip.
+
+For each pair test both directions where applicable.
+
+The current plan covers only a small subset.
+
+Rebalance the 80 tests.
+
+==================================================
+48. FIX TEST 60 REQUIRED PRIZE FIELDS
+==================================================
+
+Test 60 includes only:
+
+position_name
+
+but the SQL requires:
+
+display_order.
+
+currency.
+
+includes_trophy.
+
+includes_certificate.
+
+Use a complete valid prize object while omitting only monetary_amount.
+
+==================================================
+49. FIX TEST 63 — IT STILL DOES NOT TEST PARTIAL MUTATION
+==================================================
+
+Test 63 still uses duplicate display order.
+
+Duplicate display order fails during preflight.
+
+No Competition UPDATE or prize INSERT occurs.
+
+Therefore it does not prove transaction rollback after partial mutation.
+
+Create a failure that occurs after at least one nested mutation.
+
+For example:
+
+- Competition UPDATE succeeds.
+- First prize INSERT succeeds.
+- Second prize mutation triggers a database-level constraint or controlled late invariant.
+- Transaction aborts.
+
+Then verify:
+
+Competition values restored.
+
+First prize absent/restored.
+
+Existing prize set restored.
+
+Refund state restored.
+
+If no natural late failure exists, add a test-only fixture/constraint or choose a real late invariant.
+
+==================================================
+50. FIX TESTS 69-71 AGAINST ACTUAL SQL
+==================================================
+
+Current SQL does not preflight legal-document validity for enabled free drafts.
+
+Therefore tests 69-71 may incorrectly succeed unless publication/paid invariants run or a foreign key rejects them.
+
+Fix SQL first.
+
+Then specify exact setup and expected error.
+
+==================================================
+51. ADD FREE ENABLED REFUND VALIDATION TEST
+==================================================
+
+Test:
+
+registration_fee = 0.
+
+refund enabled.
+
+legal version invalid/inactive/future.
+
+Expected:
+
+failure.
+
+This proves enabled configurations are always internally valid.
+
+==================================================
+52. ADD REFUND POLICY MATRIX TESTS
+==================================================
+
+Test every policy:
+
+full = 100 succeeds.
+
+full != 100 fails.
+
+no_refund = 0 succeeds.
+
+no_refund != 0 fails.
+
+partial between 0 and 100 succeeds.
+
+partial boundary 0 fails.
+
+partial boundary 100 fails.
+
+conditional 0 succeeds.
+
+conditional 100 succeeds.
+
+conditional outside range fails.
+
+==================================================
+53. ADD REFUND JSON-TYPE TESTS
+==================================================
+
+Test:
+
+refund_configuration as array.
+
+enabled as string.
+
+refund_percentage as string.
+
+refund_deadline as number.
+
+legal_document_version_id as number.
+
+==================================================
+54. ADD SUBMISSION JSON-NULL TESTS
+==================================================
+
+Test exact behavior for:
+
+instructions: null.
+
+opens_at: null.
+
+closes_at: null.
+
+maximum_file_count: null.
+
+maximum_file_size_mb: null.
+
+accepted_extensions: null.
+
+accepted_mime_types: null.
+
+The contract and SQL must agree.
+
+==================================================
+55. ADD SUBMISSION WRONG-TYPE TESTS
+==================================================
+
+Test:
+
+accepted_extensions contains number.
+
+accepted_mime_types contains object.
+
+maximum_file_count is fractional.
+
+maximum_file_size_mb is string.
+
+opens_at is number.
+
+closes_at is boolean.
+
+==================================================
+56. ADD STORED SUBMISSION POST-FLIGHT TESTS
+==================================================
+
+After success, query the database and assert:
+
+canonical extensions.
+
+canonical MIME values.
+
+canonical instructions.
+
+canonical timestamps.
+
+no unknown keys.
+
+correct integer values.
+
+==================================================
+57. ADD PRIZE POST-FLIGHT VALUE TESTS
+==================================================
+
+After replacement, assert every stored field exactly.
+
+Do not test only row count.
+
+==================================================
+58. ADD PRIZE ID-SET TESTS
+==================================================
+
+Test:
+
+existing ID preserved.
+
+new ID generated.
+
+omitted old ID deleted.
+
+foreign ID rejected.
+
+duplicate incoming ID rejected.
+
+final stored IDs exactly equal expected IDs.
+
+==================================================
+59. ADD RLS TESTS FOR EXPLORE
+==================================================
+
+Test as:
+
+anon.
+
+authenticated ordinary user.
+
+authenticated admin.
+
+Verify draft/private rows are not returned.
+
+Verify future scheduled rows are not returned.
+
+Verify published rows are returned.
+
+==================================================
+60. ADD EXACT MONTH-BOUNDARY TESTS
+==================================================
+
+Use explicit timestamps.
+
+Example:
+
+2026-07-31 18:29:59+00
+
+maps to:
+
+2026-07-31 23:59:59 Asia/Kolkata.
+
+2026-07-31 18:30:00+00
+
+maps to:
+
+2026-08-01 00:00:00 Asia/Kolkata.
+
+Verify they are partitioned into different local months.
+
+==================================================
+61. ADD START/END BOUND TESTS
+==================================================
+
+Verify:
+
+starts_at = p_start is included.
+
+starts_at immediately before p_end is included.
+
+starts_at = p_end is excluded.
+
+==================================================
+62. ADD PER-MONTH LIMIT TEST
+==================================================
+
+Create more than p_limit rows in two different local months.
+
+Verify:
+
+p_limit applies independently to each month.
+
+==================================================
+63. ADD STABLE ORDER TEST
+==================================================
+
+Create rows with equal starts_at.
+
+Verify deterministic ordering by:
+
+starts_at ASC.
+
+id ASC.
+
+==================================================
+64. REBUILD EXACTLY 80 TESTS
+==================================================
+
+The revised plan must still contain exactly 80 tests.
+
+Every test must include:
+
+Name.
+
+Exact setup.
+
+Exact executable payload/RPC call.
+
+Expected RPC result/error.
+
+Exact final Competition state.
+
+Exact final prize state where relevant.
+
+Exact final refund state where relevant.
+
+Exact returned rows where Explore is relevant.
+
+Do not use shorthand payload keys.
+
+Do not use ellipses inside executable payloads.
+
+Do not say only:
+
+DB updated.
+
+DB unmodified.
+
+State the relevant columns/rows explicitly.
+
+==================================================
+65. ADD SQL VALIDATION EVIDENCE
+==================================================
+
+Before returning the report:
+
+Run the migration in a disposable local PostgreSQL/Supabase-compatible environment if available.
+
+At minimum validate:
+
+SQL parses.
+
+Functions compile.
+
+Required relations exist.
+
+Required columns exist.
+
+Required enum casts exist.
+
+ON CONFLICT target exists.
+
+Function owner exists.
+
+GRANT roles exist.
+
+No ambiguous column references.
+
+No invalid row-type assignments.
+
+No invalid CREATE FUNCTION SET syntax.
+
+Report the exact validation method and output.
+
+If no executable database environment is available, state:
+
+“Not database-compiled.”
+
+Do not claim compile safety.
+
+==================================================
+66. RETURN FINAL CORRECTED ARTIFACTS
+==================================================
+
+Return:
+
+A. Exact schema evidence with migration/type paths.
+
+B. Complete existing-file audit.
+
+C. Complete allowed-key-to-handler matrix.
+
+D. Exact field-to-column mapping.
+
+E. Exact visibility/RLS evidence.
+
+F. Exact lifecycle transition matrix.
+
+G. Exact patch/null contract.
+
+H. Exact always-on validation contract.
+
+I. Exact strict publication validation contract.
+
+J. Exact category legacy-reference rule.
+
+K. Exact organizer legacy-reference rule.
+
+L. Exact submission JSON-null contract.
+
+M. Exact normalized submission implementation.
+
+N. Complete submission preflight validation.
+
+O. Complete submission post-flight invariants.
+
+P. Exact extension allowlist.
+
+Q. Exact MIME allowlist.
+
+R. Complete MIME compatibility implementation.
+
+S. Exact normalized participant implementation.
+
+T. Exact normalized important-information implementation.
+
+U. Exact eligibility-configuration contract.
+
+V. Exact normalized prize representation.
+
+W. Exact prize replacement implementation.
+
+X. Complete prize ID-set invariants.
+
+Y. Complete prize value invariants.
+
+Z. Prize database-constraint and race-safety audit.
+
+AA. Exact refund-policy evidence.
+
+AB. Exact refund-policy matrix.
+
+AC. Exact refund deadline rule.
+
+AD. Exact legal-document/version schema evidence.
+
+AE. Complete enabled-refund preflight validation.
+
+AF. Complete enabled-refund post-flight invariants.
+
+AG. Paid-publication refund invariant.
+
+AH. Exact Explore timezone/bounds contract.
+
+AI. Final Explore RPC.
+
+AJ. Exact Explore RLS/table privilege evidence.
+
+AK. Exact save-RPC owner/security evidence.
+
+AL. Exact is_competition_admin definition and audit.
+
+AM. Exact app.current_profile_id definition and audit.
+
+AN. Exact lock-order/deadlock audit.
+
+AO. Executable lifecycle invariant SQL.
+
+AP. Executable submission invariant SQL.
+
+AQ. Executable prize invariant SQL.
+
+AR. Executable refund invariant SQL.
+
+AS. Complete corrected migration 045 SQL.
+
+AT. Exact existing files to modify.
+
+AU. Exact new files to create.
+
+AV. Exactly 80 corrected detailed integration tests.
+
+AW. SQL validation method and result.
+
+AX. Confirmation migration 045 was not created.
+
+AY. Confirmation no SQL was applied.
+
+AZ. Confirmation no production code was modified.
+
+BA. Confirmation Phase C was not started.
+
+STOP after the report.
+
+Await explicit approval.
+
+DO NOT CREATE MIGRATION 045.
+DO NOT APPLY SQL.
+DO NOT MODIFY PRODUCTION CODE.
+DO NOT BEGIN PHASE C.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-07-14T06:22:24+05:30.
+</ADDITIONAL_METADATA>

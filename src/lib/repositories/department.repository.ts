@@ -599,9 +599,14 @@ export class DepartmentNoticeRepository extends BaseRepository<DbRow> {
 // 6. DepartmentEventRepository
 // =============================================================================
 
+import { EventRepository } from "@/features/event/repositories/EventRepository";
+
 export class DepartmentEventRepository extends BaseRepository<DbRow> {
+  private eventRepo: EventRepository;
+
   constructor(supabase: SupabaseClient) {
-    super(supabase, "department_events");
+    super(supabase, "department_events"); // Keep for BaseRepository contract if needed
+    this.eventRepo = new EventRepository(supabase as any);
   }
 
   async findByDepartmentId(
@@ -612,99 +617,128 @@ export class DepartmentEventRepository extends BaseRepository<DbRow> {
     sortBy = "event_start_time",
     sortOrder: "asc" | "desc" = "asc"
   ): Promise<DbRow[]> {
-    let query = this.supabase
-      .from("department_events")
-      .select("*, profiles!coordinator_profile_id(id, full_name, username, avatar_url)")
-      .eq("department_id", departmentId);
-
-    if (filter?.eventType) {
-      query = query.eq("event_type", filter.eventType);
-    }
-    if (filter?.isPublished !== undefined) {
-      query = query.eq("is_published", filter.isPublished);
-    }
-    if (filter?.isFeatured !== undefined) {
-      query = query.eq("is_featured", filter.isFeatured);
-    }
-    if (filter?.upcomingOnly) {
-      query = query.gte("event_end_time", new Date().toISOString());
-    }
-
-    const { data, error } = await query
-      .order(sortBy, { ascending: sortOrder === "asc" })
-      .range(offset, offset + limit - 1);
-
-    if (error) {
+    try {
+      const { events } = await this.eventRepo.getEvents({
+        scopeType: 'DEPARTMENT',
+        scopeId: departmentId,
+        isPublished: filter?.isPublished,
+        isFeatured: filter?.isFeatured,
+        upcomingOnly: filter?.upcomingOnly,
+        limit,
+        offset,
+      });
+      
+      // Adapt generic events back to department_events shape for compatibility
+      return events.map((e: any) => ({
+        ...e,
+        department_id: e.scope_id,
+        event_type: e.event_category,
+        coordinator_profile_id: e.organizer_id,
+        profiles: e.organizer,
+      })) as any;
+    } catch (error: any) {
       throw new DepartmentRepositoryError(`Repository Error (findByDepartmentId Event): ${error.message}`);
     }
-    return (data || []) as DbRow[];
   }
 
   async findBySlug(departmentId: string, slug: string): Promise<DbRow | null> {
-    const { data, error } = await this.supabase
-      .from("department_events")
-      .select("*, profiles!coordinator_profile_id(id, full_name, username, avatar_url)")
-      .eq("department_id", departmentId)
-      .eq("slug", slug)
-      .maybeSingle();
-
-    if (error) {
+    try {
+      const event = await this.eventRepo.getEventBySlug(slug);
+      if (!event || event.scope_id !== departmentId || event.scope_type !== 'DEPARTMENT') return null;
+      
+      return {
+        ...event,
+        department_id: event.scope_id,
+        event_type: event.event_category,
+        coordinator_profile_id: event.organizer_id,
+        profiles: (event as any).organizer,
+      } as any;
+    } catch (error: any) {
+      if (error.code === 'PGRST116') return null; // No rows found
       throw new DepartmentRepositoryError(`Repository Error (findBySlug Event): ${error.message}`);
     }
-    return data as DbRow | null;
   }
 
-  async createEvent(payload: DbRow): Promise<DbRow> {
-    const { data, error } = await this.supabase
-      .from("department_events")
-      .insert(payload)
-      .select()
-      .single();
-
-    if (error) {
+  async createEvent(payload: any): Promise<DbRow> {
+    try {
+      const eventPayload = {
+        ...payload,
+        scope_type: 'DEPARTMENT',
+        scope_id: payload.department_id,
+        event_category: payload.event_type || 'other',
+        organizer_id: payload.coordinator_profile_id,
+      };
+      
+      delete eventPayload.department_id;
+      delete eventPayload.event_type;
+      delete eventPayload.coordinator_profile_id;
+      
+      const created = await this.eventRepo.createEvent(eventPayload);
+      
+      return {
+        ...created,
+        department_id: created.scope_id,
+        event_type: created.event_category,
+        coordinator_profile_id: created.organizer_id,
+      } as any;
+    } catch (error: any) {
       throw new DepartmentRepositoryError(`Repository Error (createEvent): ${error.message}`);
     }
-    return data as DbRow;
   }
 
-  async updateEvent(id: string, payload: DbRow, expectedUpdatedAt?: string): Promise<DbRow> {
-    let query = this.supabase.from("department_events").update(payload).eq("id", id);
+  async updateEvent(id: string, payload: any, expectedUpdatedAt?: string): Promise<DbRow> {
+    try {
+      // First get current to check optimistic lock
+      if (expectedUpdatedAt) {
+        const current = await this.eventRepo.getEventById(id);
+        if (current.updated_at !== expectedUpdatedAt) {
+           throw new DepartmentOptimisticLockError();
+        }
+      }
 
-    if (expectedUpdatedAt) {
-      query = query.eq("updated_at", expectedUpdatedAt);
-    }
-
-    const { data, error } = await query.select().maybeSingle();
-
-    if (error) {
+      const eventPayload = {
+        ...payload,
+      };
+      
+      if (payload.department_id !== undefined) {
+        eventPayload.scope_id = payload.department_id;
+        delete eventPayload.department_id;
+      }
+      if (payload.event_type !== undefined) {
+        eventPayload.event_category = payload.event_type;
+        delete eventPayload.event_type;
+      }
+      if (payload.coordinator_profile_id !== undefined) {
+        eventPayload.organizer_id = payload.coordinator_profile_id;
+        delete eventPayload.coordinator_profile_id;
+      }
+      
+      const updated = await this.eventRepo.updateEvent(id, eventPayload);
+      
+      return {
+        ...updated,
+        department_id: updated.scope_id,
+        event_type: updated.event_category,
+        coordinator_profile_id: updated.organizer_id,
+      } as any;
+    } catch (error: any) {
+      if (error instanceof DepartmentOptimisticLockError) throw error;
       throw new DepartmentRepositoryError(`Repository Error (updateEvent): ${error.message}`);
     }
-    if (!data && expectedUpdatedAt) {
-      throw new DepartmentOptimisticLockError();
-    }
-    if (!data) {
-      throw new DepartmentRepositoryError("Event record not found or update failed.");
-    }
-    return data as DbRow;
   }
 
   async incrementViewCount(id: string): Promise<void> {
-    const { data: event } = await this.supabase
-      .from("department_events")
-      .select("view_count")
-      .eq("id", id)
-      .maybeSingle();
-    if (event) {
-      await this.supabase
-        .from("department_events")
-        .update({ view_count: ((event.view_count as number) || 0) + 1 })
-        .eq("id", id);
+    try {
+      await this.eventRepo.incrementViewCount(id);
+    } catch (error) {
+      // ignore or log
     }
   }
 
   async deleteEvent(id: string): Promise<void> {
-    const { error } = await this.supabase.from("department_events").delete().eq("id", id);
-    if (error) {
+    try {
+      await this.eventRepo.deleteEvent(id);
+    } catch (error: any) {
       throw new DepartmentRepositoryError(`Repository Error (deleteEvent): ${error.message}`);
     }
   }

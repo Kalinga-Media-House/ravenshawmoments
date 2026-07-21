@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HostelEmptyState } from "@/features/hostel/components";
 
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Hostels Dashboard | Ravenshaw Moments",
   description: "Manage university hostels, residents, and BMC operations.",

@@ -1,0 +1,16 @@
+export const RAVENSHAW_COURSES = [
+  "B.A.",
+  "B.Sc.",
+  "B.Com.",
+  "M.A.",
+  "M.Sc.",
+  "M.Com.",
+  "BBA",
+  "MBA",
+  "BCA",
+  "MCA",
+  "B.Ed.",
+  "M.Ed.",
+  "Ph.D.",
+  "M.Phil.",
+];

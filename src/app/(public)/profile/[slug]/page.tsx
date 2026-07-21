@@ -16,6 +16,13 @@ import {
 } from "@/features/profile/components";
 import { Shield } from "lucide-react";
 import { env } from "@/lib/env";
+import {
+  AlumniProfileView,
+  getPublicAlumniAction,
+  projectCanonicalToPublicAlumni,
+} from "@/features/alumni";
+
+export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -28,10 +35,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!profile) {
       return { title: "Profile Not Found | Ravenshaw Moments" };
     }
-    const title = `${profile.full_name} (@${profile.username}) | Ravenshaw Moments`;
+
+    const isAlumni = profile.profile_type === "alumni";
+    const title = isAlumni
+      ? `${profile.full_name} | Ravenshaw Alumni | Ravenshaw Moments`
+      : `${profile.full_name} (@${profile.username}) | Ravenshaw Moments`;
+
     const description =
       profile.bio ||
-      `View ${profile.full_name}'s academic profile, verified certificates, and achievement timeline on Ravenshaw Moments.`;
+      (isAlumni
+        ? `Explore the Ravenshaw journey, memories, achievements, and public profile of ${profile.full_name}.`
+        : `View ${profile.full_name}'s academic profile, verified certificates, and achievement timeline on Ravenshaw Moments.`);
+
     const url = `${env.NEXT_PUBLIC_APP_URL}/profile/${profile.slug}`;
 
     return {
@@ -96,13 +111,48 @@ export default async function PublicProfilePage({ params }: Props) {
     notFound();
   }
 
+  // 1. Check if profile is an Alumni profile
+  if (profile.profile_type === "alumni") {
+    const publicAlumnus = projectCanonicalToPublicAlumni(profile);
+    const allAlumni = await getPublicAlumniAction();
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      name: profile.full_name,
+      alternateName: profile.username,
+      description: profile.bio || `Alumnus of Ravenshaw University`,
+      avatar_url: profile.avatar_url || undefined,
+      url: `${env.NEXT_PUBLIC_APP_URL}/profile/${profile.slug}`,
+      alumniOf: {
+        "@type": "CollegeOrUniversity",
+        name: "Ravenshaw University",
+      },
+    };
+
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <AlumniProfileView
+          alumnus={publicAlumnus}
+          allAlumni={allAlumni}
+          isOwner={false}
+        />
+      </>
+    );
+  }
+
+  // 2. Shared architecture for non-alumni profiles (Student, Teacher, CR, BMC)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
     name: profile.full_name,
     alternateName: profile.username,
     description: profile.bio || "Student at Ravenshaw University",
-    image: profile.avatar_url || undefined,
+    avatar_url: profile.avatar_url || undefined,
     url: `${env.NEXT_PUBLIC_APP_URL}/profile/${profile.slug}`,
     alumniOf: {
       "@type": "CollegeOrUniversity",
@@ -134,8 +184,11 @@ export default async function PublicProfilePage({ params }: Props) {
           avatarUrl={profile.avatar_url}
           coverUrl={profile.cover_url}
           profileType={profile.profile_type}
+          level={profile.level}
+          stream={profile.stream}
           departmentName={profile.department_name}
           batchYear={profile.batch_year}
+          universityName={profile.university_name}
           isVerified={profile.is_verified}
           isOwner={false}
         />
@@ -167,8 +220,11 @@ export default async function PublicProfilePage({ params }: Props) {
               </div>
               <div className="space-y-6">
                 <AcademicInfoCard
+                  level={profile.level}
+                  stream={profile.stream}
                   departmentName={profile.department_name}
                   batchYear={profile.batch_year}
+                  universityName={profile.university_name}
                   isVerified={profile.is_verified}
                 />
               </div>

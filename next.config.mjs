@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   images: {
+    qualities: [75, 85],
     remotePatterns: [
       {
         protocol: "https",
@@ -19,6 +20,12 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "www.svgrepo.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
         port: "",
         pathname: "/**",
       },
@@ -51,7 +58,7 @@ const nextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://yahllwlimhztjyjkfwwe.supabase.co https://lh3.googleusercontent.com https://www.svgrepo.com; font-src 'self'; connect-src 'self' https://yahllwlimhztjyjkfwwe.supabase.co;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://yahllwlimhztjyjkfwwe.supabase.co https://lh3.googleusercontent.com https://www.svgrepo.com https://images.unsplash.com; font-src 'self'; connect-src 'self' https://yahllwlimhztjyjkfwwe.supabase.co https://www.google-analytics.com https://*.clarity.ms;",
           },
           {
             key: "Permissions-Policy",

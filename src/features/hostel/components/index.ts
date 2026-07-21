@@ -9,3 +9,7 @@ export * from "./HostelResidentGrid";
 export * from "./HostelAchievements";
 export * from "./HostelEmptyState";
 export * from "./HostelSkeleton";
+
+// Directory
+export * from "./HostelsDirectory";
+export * from "./HostelDirectoryCard";

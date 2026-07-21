@@ -37,7 +37,7 @@ export type VerificationStatus = "pending" | "approved" | "rejected";
 /**
  * Profile verification state.
  */
-export type ProfileStatus = "unclaimed" | "pending" | "active" | "suspended" | "archived";
+export type ProfileStatus = "unclaimed" | "pending" | "active" | "verified" | "rejected" | "suspended" | "archived";
 
 /**
  * Certificate types supported by the certificate engine.
@@ -145,8 +145,11 @@ export interface PublicProfile extends BaseEntity {
   cover_url?: string;
   profile_type: ProfileType;
   bio?: string;
+  level?: string;
+  stream?: string;
   department_name?: string;
   batch_year?: string;
+  university_name?: string;
   is_verified: boolean;
   achievements: AchievementSummary[];
   winner_certificates: ProfileCertificate[];

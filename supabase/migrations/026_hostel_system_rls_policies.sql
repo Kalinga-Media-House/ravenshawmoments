@@ -18,11 +18,13 @@ ALTER TABLE public.hostel_achievements ENABLE ROW LEVEL SECURITY;
 CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS BOOLEAN
 LANGUAGE sql
+STABLE
 SECURITY DEFINER
+SET search_path = public
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'super_admin'
+    WHERE auth_user_id = auth.uid() AND profile_type = 'super_admin'
   );
 $$;
 
@@ -30,12 +32,14 @@ $$;
 CREATE OR REPLACE FUNCTION public.is_hostel_bmc_with_permission(target_hostel_id UUID, perm_key TEXT)
 RETURNS BOOLEAN
 LANGUAGE sql
+STABLE
 SECURITY DEFINER
+SET search_path = public
 AS $$
   SELECT EXISTS (
     SELECT 1 FROM public.hostel_bmcs
     WHERE hostel_id = target_hostel_id
-      AND profile_id = auth.uid()
+      AND profile_id = app.current_profile_id()
       AND is_active = true
       AND (
         role_title = 'general_secretary' OR

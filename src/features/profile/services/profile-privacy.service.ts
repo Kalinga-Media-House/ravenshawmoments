@@ -16,6 +16,7 @@ export const profilePrivacyService = {
    */
   updatePrivacySettings: async (authUserId: string, rawData: Record<string, unknown>): Promise<void> => {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new ProfileRepository(supabase);
 
     const validated = privacySettingsSchema.parse(rawData);

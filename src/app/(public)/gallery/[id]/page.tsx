@@ -25,7 +25,7 @@ export default async function GalleryDetailPage({
       <h1 className="text-4xl font-bold mb-6 capitalize">{identifier.replace(/-/g, ' ')}</h1>
       <div className="relative w-full h-96 bg-muted rounded-2xl overflow-hidden mb-8">
          <Image 
-            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
+            src="/hero/hero-4.webp"
             alt="Cover"
             fill
             className="object-cover"

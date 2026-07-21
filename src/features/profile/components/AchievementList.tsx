@@ -23,11 +23,11 @@ export function AchievementList({
     return (
       <div className={cn("space-y-4", className)}>
         <div>
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-[var(--color-light-heading-primary)] flex items-center gap-2">
+            <Trophy className="h-5 w-5 heritage-icon" />
             <span>{title}</span>
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+          <p className="text-xs text-[var(--color-light-text-muted)] mt-0.5">{description}</p>
         </div>
         <EmptyState
           title="No achievements highlighted yet"
@@ -41,16 +41,16 @@ export function AchievementList({
   return (
     <div className={cn("space-y-6", className)}>
       <div>
-        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-bold text-[var(--color-light-heading-primary)] flex items-center gap-2">
+          <Trophy className="h-5 w-5 heritage-icon" />
           <span>{title} ({achievements.length})</span>
         </h2>
-        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+        <p className="text-xs text-[var(--color-light-text-muted)] mt-0.5">{description}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {achievements.map((item) => (
-          <Card key={item.id} className="overflow-hidden border bg-card shadow-2xs transition-all hover:shadow-md flex flex-col justify-between">
+          <Card key={item.id} className="overflow-hidden heritage-card-glass transition-all hover:shadow-md flex flex-col justify-between border-0">
             {item.featured_media_url && (
               <div className="relative h-36 w-full overflow-hidden bg-muted">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -71,11 +71,11 @@ export function AchievementList({
             <CardContent className={cn("p-5 space-y-3 flex-1 flex flex-col justify-between", !item.featured_media_url && "pt-5")}>
               <div className="space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-bold text-sm text-foreground line-clamp-2">
+                  <h3 className="font-bold text-sm heritage-card-title line-clamp-2">
                     {item.title}
                   </h3>
                   {item.position && (
-                    <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold shrink-0 gap-1 text-xs">
+                    <Badge variant="secondary" className="bg-[var(--color-heritage-gold)]/20 text-[var(--color-heritage-gold)] font-semibold shrink-0 gap-1 text-xs">
                       <Medal className="h-3 w-3" />
                       <span>{item.position}</span>
                     </Badge>
@@ -89,10 +89,10 @@ export function AchievementList({
                 )}
               </div>
 
-              <div className="pt-3 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <div className="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs heritage-card-muted">
                 {item.issuing_organization ? (
-                  <span className="flex items-center gap-1 font-medium text-foreground truncate max-w-[200px]">
-                    <Building className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span className="flex items-center gap-1 font-medium heritage-card-title truncate max-w-[200px]">
+                    <Building className="h-3.5 w-3.5 heritage-icon shrink-0" />
                     <span className="truncate">{item.issuing_organization}</span>
                   </span>
                 ) : <span />}

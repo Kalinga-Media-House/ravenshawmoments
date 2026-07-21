@@ -69,7 +69,7 @@ export function ProfileTabs({
             const navClassName = cn(
               "flex items-center gap-2 py-3 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-all whitespace-nowrap",
               isActive
-                ? "border-primary text-primary drop-shadow-2xs"
+                ? "border-primary text-primary drop-shadow-sm"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             );
 

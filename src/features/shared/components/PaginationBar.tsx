@@ -1,7 +1,7 @@
 // =============================================================================
 // Ravenshaw Moments
 // File      : src/features/shared/components/PaginationBar.tsx
-// Purpose   : Shared Platform Layer — Reusable Accessible Pagination Controls
+// Purpose   : Shared Platform Layer - Reusable Accessible Pagination Controls
 // =============================================================================
 
 import React from "react";

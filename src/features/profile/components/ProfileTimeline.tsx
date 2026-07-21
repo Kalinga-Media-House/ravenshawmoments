@@ -59,8 +59,8 @@ export function ProfileTimeline({
   if (!mergedItems.length) {
     return (
       <div className={cn("space-y-4", className)}>
-        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-bold text-[var(--color-light-heading-primary)] flex items-center gap-2">
+          <Calendar className="h-5 w-5 heritage-icon" />
           <span>{title}</span>
         </h2>
         <EmptyState
@@ -74,12 +74,12 @@ export function ProfileTimeline({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-        <Calendar className="h-5 w-5 text-primary" />
+      <h2 className="text-lg font-bold text-[var(--color-light-heading-primary)] flex items-center gap-2">
+        <Calendar className="h-5 w-5 heritage-icon" />
         <span>{title} ({mergedItems.length})</span>
       </h2>
 
-      <div className="relative border-l-2 border-primary/30 pl-6 ml-3 space-y-8 py-2">
+      <div className="relative border-l-2 border-[var(--color-heritage-gold)]/30 pl-6 ml-3 space-y-8 py-2">
         {mergedItems.map((item) => {
           const isCert = item.type === "certificate";
           const Icon = isCert ? Award : Trophy;
@@ -89,16 +89,16 @@ export function ProfileTimeline({
               <span
                 className={cn(
                   "absolute -left-[33px] top-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background shadow-xs transition-transform group-hover:scale-110",
-                  isCert ? "bg-amber-500 text-white" : "bg-primary text-primary-foreground"
+                  isCert ? "bg-amber-500 text-white" : "bg-[var(--color-heritage-gold)] text-black border-none"
                 )}
               >
                 <Icon className="h-3 w-3" />
               </span>
 
-              <Card className="border bg-card/80 shadow-2xs transition-all hover:shadow-md">
+              <Card className="heritage-card-glass transition-all hover:shadow-md border-0">
                 <CardContent className="p-4 sm:p-5 space-y-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-muted-foreground">
+                    <span className="text-xs font-semibold heritage-card-muted">
                       {new Date(item.date).toLocaleDateString("en-US", {
                         month: "long",
                         day: "numeric",
@@ -116,15 +116,15 @@ export function ProfileTimeline({
                     </Badge>
                   </div>
 
-                  <h3 className="text-base font-bold text-foreground">{item.title}</h3>
+                  <h3 className="text-base font-bold heritage-card-title">{item.title}</h3>
 
                   {item.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
+                    <p className="text-xs heritage-card-muted line-clamp-2">{item.description}</p>
                   )}
 
-                  <div className="pt-2 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs heritage-card-muted">
                     {item.organization ? (
-                      <span className="font-medium text-foreground">By {item.organization}</span>
+                      <span className="font-medium heritage-card-title">By {item.organization}</span>
                     ) : <span />}
 
                     {item.link && (
@@ -132,7 +132,7 @@ export function ProfileTimeline({
                         href={item.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline font-medium"
+                        className="inline-flex items-center gap-1 text-[var(--color-heritage-gold)] hover:underline font-medium"
                       >
                         <span>View Document</span>
                         <ExternalLink className="h-3 w-3" />

@@ -64,6 +64,15 @@ export async function listOrganizationsByType(orgType: OrganizationTypeEnum): Pr
   }
 }
 
+export async function listAllActiveOrganizationsAction(): Promise<ApiResponse<Organization[]>> {
+  try {
+    const orgs = await OrganizationService.listAllActiveOrganizations();
+    return { success: true, data: orgs };
+  } catch (error) {
+    return formatError(error);
+  }
+}
+
 export async function createOrganization(payload: CreateOrganizationPayload): Promise<ApiResponse<Organization>> {
   try {
     const parsed = createOrganizationSchema.parse(payload);
@@ -142,6 +151,70 @@ export async function assignAdvisor(payload: CreateOrganizationAdvisorPayload): 
     const advisor = await AdvisorService.assignAdvisor(parsed);
     revalidatePath(`/dashboard/organizations/${parsed.org_id}/advisors`);
     return { success: true, data: advisor };
+  } catch (error) {
+    return formatError(error);
+  }
+}
+
+export async function updateOrganizationAction(id: string, payload: any): Promise<ApiResponse<Organization>> {
+  try {
+    const org = await OrganizationService.updateOrganization(id, payload);
+    revalidatePath(`/dashboard/organizations/${id}`);
+    revalidatePath(`/dashboard/organizations/${id}/settings`);
+    return { success: true, data: org };
+  } catch (error) {
+    return formatError(error);
+  }
+}
+
+export async function getOrganizationByIdAction(id: string): Promise<ApiResponse<Organization>> {
+  try {
+    const org = await OrganizationService.getOrganizationById(id);
+    return { success: true, data: org };
+  } catch (error) {
+    return formatError(error);
+  }
+}
+
+export async function getMyOrganizationsAction(): Promise<ApiResponse<OrganizationMember[]>> {
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthorized");
+    
+    const memberships = await OrganizationService.getMyOrganizations(user.id);
+    return { success: true, data: memberships };
+  } catch (error) {
+    return formatError(error);
+  }
+}
+
+export async function removeMemberAction(memberId: string, orgId: string): Promise<ApiResponse<void>> {
+  try {
+    await MemberService.removeMember(memberId);
+    revalidatePath(`/dashboard/organizations/${orgId}/members`);
+    return { success: true, data: undefined };
+  } catch (error) {
+    return formatError(error);
+  }
+}
+
+export async function updateMemberRoleAction(memberId: string, orgId: string, role: string, designation?: string): Promise<ApiResponse<OrganizationMember>> {
+  try {
+    const updated = await MemberService.updateMemberRole(memberId, role, designation);
+    revalidatePath(`/dashboard/organizations/${orgId}/members`);
+    return { success: true, data: updated };
+  } catch (error) {
+    return formatError(error);
+  }
+}
+
+export async function removeAdvisorAction(advisorId: string, orgId: string): Promise<ApiResponse<void>> {
+  try {
+    await AdvisorService.removeAdvisor(advisorId);
+    revalidatePath(`/dashboard/organizations/${orgId}/advisors`);
+    return { success: true, data: undefined };
   } catch (error) {
     return formatError(error);
   }

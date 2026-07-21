@@ -14,6 +14,7 @@ export const profileCertificateService = {
    */
   getProfileTimeline: async (profileId: string): Promise<Array<AchievementSummary | ProfileCertificate>> => {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new ProfileRepository(supabase);
 
     const achievements = await repo.getAchievements(profileId);
@@ -69,6 +70,7 @@ export const profileCertificateService = {
    */
   getProfileCertificates: async (profileId: string, includePrivate = false): Promise<ProfileCertificate[]> => {
     const supabase = await createClient();
+    // @ts-ignore
     const repo = new ProfileRepository(supabase);
 
     const allCertificates = await repo.getCertificates(profileId);

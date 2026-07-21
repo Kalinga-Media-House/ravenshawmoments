@@ -442,7 +442,8 @@ SELECT
     ga.slug AS album_slug,
     ga.description,
     ga.cover_media_id,
-    mf.file_url AS cover_url,
+    mf.storage_bucket AS cover_storage_bucket,
+    mf.storage_path AS cover_storage_path,
     ga.is_featured,
     ga.created_at,
     (SELECT count(*) FROM public.gallery_items gi WHERE gi.gallery_album_id = ga.id) AS item_count
@@ -467,7 +468,8 @@ SELECT
     a.description,
     a.achievement_date,
     a.issuing_organization,
-    mf.file_url AS featured_image_url,
+    mf.storage_bucket AS featured_image_storage_bucket,
+    mf.storage_path AS featured_image_storage_path,
     a.is_featured,
     a.created_at
 FROM public.achievements a
@@ -490,7 +492,8 @@ SELECT
     ci.slug AS news_slug,
     ci.summary,
     ci.body,
-    mf.file_url AS featured_image_url,
+    mf.storage_bucket AS featured_image_storage_bucket,
+    mf.storage_path AS featured_image_storage_path,
     ci.published_at,
     ci.view_count,
     ci.is_featured

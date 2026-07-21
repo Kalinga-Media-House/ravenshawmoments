@@ -1,11 +1,11 @@
 // =============================================================================
 // Ravenshaw Moments
 // File      : src/features/shared/components/EmptyStateCard.tsx
-// Purpose   : Shared Platform Layer — Reusable Accessible Empty State Component
+// Purpose   : Backwards-compatible wrapper around EmptyState for legacy calls
 // =============================================================================
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/features/shared/components/EmptyState";
 
 export interface EmptyStateCardProps {
   title: string;
@@ -23,15 +23,13 @@ export function EmptyStateCard({
   className = "",
 }: EmptyStateCardProps) {
   return (
-    <Card className={`w-full text-center border border-dashed py-12 ${className}`} role="region" aria-label={title}>
-      <CardContent className="flex flex-col items-center justify-center space-y-4">
-        {icon && <div className="text-muted-foreground p-3 rounded-full bg-muted/40">{icon}</div>}
-        <div className="space-y-1">
-          <h3 className="text-lg font-semibold tracking-tight text-foreground">{title}</h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">{description}</p>
-        </div>
-        {action && <div className="pt-2">{action}</div>}
-      </CardContent>
-    </Card>
+    <EmptyState
+      title={title}
+      description={description}
+      icon={icon}
+      primaryAction={action}
+      variant="dashed"
+      className={className}
+    />
   );
 }

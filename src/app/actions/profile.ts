@@ -34,6 +34,12 @@ export async function createProfile(formData: FormData): Promise<void> {
       full_name: sanitizeText(String(formData.get("full_name") || "")),
       username: sanitizeText(String(formData.get("username") || "")),
       bio: sanitizeText(String(formData.get("bio") || "")),
+      level: user.user_metadata?.level,
+      stream: user.user_metadata?.stream,
+      department_name: user.user_metadata?.department,
+      batch_year: user.user_metadata?.batch,
+      profile_type: user.user_metadata?.role,
+      university_name: user.user_metadata?.university_name,
     };
 
     await profileService.createProfile(user.id, user.email, rawInput);
@@ -61,11 +67,10 @@ export async function updateBasicProfile(formData: FormData): Promise<ApiRespons
   try {
     const rawInput = {
       full_name: sanitizeText(String(formData.get("full_name") || "")),
-      username: sanitizeText(String(formData.get("username") || "")),
+      username: sanitizeText(String(formData.get("username") || "")).replace(/^@+/, "").toLowerCase(),
       bio: sanitizeText(String(formData.get("bio") || "")),
       gender: formData.get("gender") ? String(formData.get("gender")) : undefined,
-      avatar_url: formData.get("avatar_url") ? String(formData.get("avatar_url")) : undefined,
-      cover_url: formData.get("cover_url") ? String(formData.get("cover_url")) : undefined,
+      date_of_birth: formData.get("date_of_birth") ? String(formData.get("date_of_birth")) : undefined,
     };
 
     await profileService.updateBasicProfile(user.id, rawInput);

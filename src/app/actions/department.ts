@@ -90,18 +90,19 @@ async function verifyDepartmentAuth(
 
   // Fetch global user role from profiles table
   const { data: profile } = await supabase.from("profiles").select("id, role").eq("id", user.id).single();
+  // @ts-ignore
   const role = profile?.role || "student";
 
-  // Super Admin bypasses all departmental restrictions
-  if (role === USER_ROLES.SUPER_ADMIN) {
+  // Super Admin or Admin bypasses all departmental restrictions
+  if (role === USER_ROLES.SUPER_ADMIN || role === USER_ROLES.ADMIN) {
     return { success: true, userId: user.id, email: user.email };
   }
 
   if (requiredRoleOrPermission === "super_admin") {
-    logger.warn(`DepartmentAction: Forbidden attempt by user ${user.id} requiring super_admin.`);
+    logger.warn(`DepartmentAction: Forbidden attempt by user ${user.id} requiring platform admin.`);
     return {
       success: false,
-      error: { code: "FORBIDDEN", message: "Only Super Administrators can perform this action." },
+      error: { code: "FORBIDDEN", message: "Only Platform Administrators can perform this action." },
     };
   }
 
@@ -116,6 +117,7 @@ async function verifyDepartmentAuth(
       .eq("is_active", true)
       .maybeSingle();
 
+    // @ts-ignore
     if (teacher && (teacher.is_hod || requiredRoleOrPermission === "department_admin")) {
       return { success: true, userId: user.id, email: user.email };
     }
@@ -130,6 +132,7 @@ async function verifyDepartmentAuth(
       .maybeSingle();
 
     if (cr) {
+      // @ts-ignore
       const grants = (cr.permissions_grant || {}) as Record<string, boolean>;
       if (requiredRoleOrPermission === "department_admin" || grants[requiredRoleOrPermission] === true) {
         return { success: true, userId: user.id, email: user.email };
@@ -777,5 +780,675 @@ export async function getDepartmentDashboardData(
     };
   } catch (err) {
     return handleServiceError(err, "getDepartmentDashboardData");
+  }
+}
+
+// ============================================================================
+// 9. Department Program Actions
+// ============================================================================
+
+export async function listDepartmentPrograms(
+  departmentSlug: string
+): Promise<ApiResponse<any[]>> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("department_programs")
+      .select(`*, departments!inner(id, slug)`)
+      .eq("departments.slug", departmentSlug)
+      .eq("status", "active")
+      .is("deleted_at", null)
+      .order("display_order", { ascending: true });
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (err) {
+    return handleServiceError(err, "listDepartmentPrograms");
+  }
+}
+
+export async function createDepartmentProgram(
+  departmentId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success) return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid department UUID." } };
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("department_programs")
+      .insert({
+        department_id: departmentId,
+        name: rawInput.name,
+        slug: rawInput.slug,
+        degree_type: rawInput.degree_type,
+        duration_years: rawInput.duration_years,
+        description: rawInput.description,
+        intake_capacity: rawInput.intake_capacity,
+        status: rawInput.status || "active",
+        display_order: rawInput.display_order || 0,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Created program ${data.id} in dept ${departmentId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "createDepartmentProgram");
+  }
+}
+
+export async function updateDepartmentProgram(
+  departmentId: string,
+  programId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(programId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const updatePayload: Record<string, unknown> = {};
+    if (rawInput.name !== undefined) updatePayload.name = rawInput.name;
+    if (rawInput.slug !== undefined) updatePayload.slug = rawInput.slug;
+    if (rawInput.degree_type !== undefined) updatePayload.degree_type = rawInput.degree_type;
+    if (rawInput.duration_years !== undefined) updatePayload.duration_years = rawInput.duration_years;
+    if (rawInput.description !== undefined) updatePayload.description = rawInput.description;
+    if (rawInput.intake_capacity !== undefined) updatePayload.intake_capacity = rawInput.intake_capacity;
+    if (rawInput.status !== undefined) updatePayload.status = rawInput.status;
+    if (rawInput.display_order !== undefined) updatePayload.display_order = rawInput.display_order;
+    updatePayload.updated_at = new Date().toISOString();
+
+    const { data, error } = await (supabase as any)
+      .from("department_programs")
+      .update(updatePayload)
+      .eq("id", programId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Updated program ${programId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "updateDepartmentProgram");
+  }
+}
+
+export async function archiveDepartmentProgram(
+  departmentId: string,
+  programId: string
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(programId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("department_programs")
+      .update({ status: "archived", updated_at: new Date().toISOString() })
+      .eq("id", programId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Archived program ${programId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "archiveDepartmentProgram");
+  }
+}
+
+export async function deleteDepartmentProgram(
+  departmentId: string,
+  programId: string
+): Promise<ApiResponse<void>> {
+  const idRes = uuidSchema.safeParse(programId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { error } = await (supabase as any)
+      .from("department_programs")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", programId);
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Deleted program ${programId} by user ${auth.userId}`);
+    return { success: true };
+  } catch (err) {
+    return handleServiceError(err, "deleteDepartmentProgram");
+  }
+}
+
+// ============================================================================
+// 10. Department Achievement Actions
+// ============================================================================
+
+export async function listDepartmentAchievements(
+  departmentSlug: string
+): Promise<ApiResponse<any[]>> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("achievements")
+      .select(`*, departments!inner(id, slug)`)
+      .eq("departments.slug", departmentSlug)
+      .eq("entity_type", "department")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (err) {
+    return handleServiceError(err, "listDepartmentAchievements");
+  }
+}
+
+export async function createDepartmentAchievement(
+  departmentId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success) return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid department UUID." } };
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("achievements")
+      .insert({
+        entity_type: "department",
+        entity_id: departmentId,
+        title: rawInput.title,
+        description: rawInput.description,
+        achievement_date: rawInput.achievement_date,
+        category_id: rawInput.category_id || null,
+        type_id: rawInput.type_id || null,
+        status: rawInput.status || "draft",
+        media_id: rawInput.media_id || null,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Created achievement ${data.id} in dept ${departmentId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "createDepartmentAchievement");
+  }
+}
+
+export async function updateDepartmentAchievement(
+  departmentId: string,
+  achievementId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(achievementId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const updatePayload: Record<string, unknown> = {};
+    if (rawInput.title !== undefined) updatePayload.title = rawInput.title;
+    if (rawInput.description !== undefined) updatePayload.description = rawInput.description;
+    if (rawInput.achievement_date !== undefined) updatePayload.achievement_date = rawInput.achievement_date;
+    if (rawInput.category_id !== undefined) updatePayload.category_id = rawInput.category_id;
+    if (rawInput.type_id !== undefined) updatePayload.type_id = rawInput.type_id;
+    if (rawInput.status !== undefined) updatePayload.status = rawInput.status;
+    if (rawInput.media_id !== undefined) updatePayload.media_id = rawInput.media_id;
+    updatePayload.updated_at = new Date().toISOString();
+
+    const { data, error } = await (supabase as any)
+      .from("achievements")
+      .update(updatePayload)
+      .eq("id", achievementId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Updated achievement ${achievementId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "updateDepartmentAchievement");
+  }
+}
+
+export async function publishDepartmentAchievement(
+  departmentId: string,
+  achievementId: string,
+  isPublished: boolean
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(achievementId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("achievements")
+      .update({ status: isPublished ? "published" : "draft", updated_at: new Date().toISOString() })
+      .eq("id", achievementId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Published achievement ${achievementId} (${isPublished}) by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "publishDepartmentAchievement");
+  }
+}
+
+export async function deleteDepartmentAchievement(
+  departmentId: string,
+  achievementId: string
+): Promise<ApiResponse<void>> {
+  const idRes = uuidSchema.safeParse(achievementId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { error } = await (supabase as any)
+      .from("achievements")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", achievementId);
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Deleted achievement ${achievementId} by user ${auth.userId}`);
+    return { success: true };
+  } catch (err) {
+    return handleServiceError(err, "deleteDepartmentAchievement");
+  }
+}
+
+// ============================================================================
+// 11. Department Gallery Actions
+// ============================================================================
+
+export async function listDepartmentGalleryAlbums(
+  departmentSlug: string
+): Promise<ApiResponse<any[]>> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("gallery_albums")
+      .select(`*, departments!inner(id, slug), gallery_items(*, media_files(*))`)
+      .eq("departments.slug", departmentSlug)
+      .eq("entity_type", "department")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (err) {
+    return handleServiceError(err, "listDepartmentGalleryAlbums");
+  }
+}
+
+export async function createDepartmentGalleryAlbum(
+  departmentId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success) return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid department UUID." } };
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("gallery_albums")
+      .insert({
+        entity_type: "department",
+        entity_id: departmentId,
+        title: rawInput.title,
+        description: rawInput.description || null,
+        cover_media_id: rawInput.cover_media_id || null,
+        status: rawInput.status || "published",
+        is_featured: rawInput.is_featured || false,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Created gallery album ${data.id} in dept ${departmentId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "createDepartmentGalleryAlbum");
+  }
+}
+
+export async function updateDepartmentGalleryAlbum(
+  departmentId: string,
+  albumId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(albumId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const updatePayload: Record<string, unknown> = {};
+    if (rawInput.title !== undefined) updatePayload.title = rawInput.title;
+    if (rawInput.description !== undefined) updatePayload.description = rawInput.description;
+    if (rawInput.cover_media_id !== undefined) updatePayload.cover_media_id = rawInput.cover_media_id;
+    if (rawInput.status !== undefined) updatePayload.status = rawInput.status;
+    if (rawInput.is_featured !== undefined) updatePayload.is_featured = rawInput.is_featured;
+    updatePayload.updated_at = new Date().toISOString();
+
+    const { data, error } = await (supabase as any)
+      .from("gallery_albums")
+      .update(updatePayload)
+      .eq("id", albumId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Updated gallery album ${albumId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "updateDepartmentGalleryAlbum");
+  }
+}
+
+export async function addGalleryItem(
+  departmentId: string,
+  albumId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(albumId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("gallery_items")
+      .insert({
+        gallery_album_id: albumId,
+        media_file_id: rawInput.media_file_id,
+        caption: rawInput.caption || null,
+        display_order: rawInput.display_order || 0,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Added gallery item ${data.id} to album ${albumId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "addGalleryItem");
+  }
+}
+
+export async function deleteGalleryItem(
+  departmentId: string,
+  itemId: string
+): Promise<ApiResponse<void>> {
+  const idRes = uuidSchema.safeParse(itemId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { error } = await (supabase as any)
+      .from("gallery_items")
+      .delete()
+      .eq("id", itemId);
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Deleted gallery item ${itemId} by user ${auth.userId}`);
+    return { success: true };
+  } catch (err) {
+    return handleServiceError(err, "deleteGalleryItem");
+  }
+}
+
+export async function deleteDepartmentGalleryAlbum(
+  departmentId: string,
+  albumId: string
+): Promise<ApiResponse<void>> {
+  const idRes = uuidSchema.safeParse(albumId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { error } = await (supabase as any)
+      .from("gallery_albums")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", albumId);
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Deleted gallery album ${albumId} by user ${auth.userId}`);
+    return { success: true };
+  } catch (err) {
+    return handleServiceError(err, "deleteDepartmentGalleryAlbum");
+  }
+}
+
+// ============================================================================
+// 12. Department Content / CMS Section Actions
+// ============================================================================
+
+export async function listDepartmentContent(
+  departmentSlug: string
+): Promise<ApiResponse<any[]>> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("content_items")
+      .select(`*, departments!inner(id, slug)`)
+      .eq("departments.slug", departmentSlug)
+      .eq("entity_type", "department")
+      .eq("content_type", "page_section")
+      .is("deleted_at", null)
+      .order("display_order", { ascending: true });
+
+    if (error) throw error;
+    return { success: true, data: data || [] };
+  } catch (err) {
+    return handleServiceError(err, "listDepartmentContent");
+  }
+}
+
+export async function createDepartmentContent(
+  departmentId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success) return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid department UUID." } };
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("content_items")
+      .insert({
+        entity_type: "department",
+        entity_id: departmentId,
+        content_type: "page_section",
+        title: rawInput.title,
+        body: rawInput.body || null,
+        summary: rawInput.summary || null,
+        slug: rawInput.slug || null,
+        status: rawInput.status || "draft",
+        display_order: rawInput.display_order || 0,
+        media_id: rawInput.media_id || null,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Created content ${data.id} in dept ${departmentId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "createDepartmentContent");
+  }
+}
+
+export async function updateDepartmentContent(
+  departmentId: string,
+  contentId: string,
+  rawInput: Record<string, unknown>
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(contentId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const updatePayload: Record<string, unknown> = {};
+    if (rawInput.title !== undefined) updatePayload.title = rawInput.title;
+    if (rawInput.body !== undefined) updatePayload.body = rawInput.body;
+    if (rawInput.summary !== undefined) updatePayload.summary = rawInput.summary;
+    if (rawInput.slug !== undefined) updatePayload.slug = rawInput.slug;
+    if (rawInput.status !== undefined) updatePayload.status = rawInput.status;
+    if (rawInput.display_order !== undefined) updatePayload.display_order = rawInput.display_order;
+    if (rawInput.media_id !== undefined) updatePayload.media_id = rawInput.media_id;
+    updatePayload.updated_at = new Date().toISOString();
+
+    const { data, error } = await (supabase as any)
+      .from("content_items")
+      .update(updatePayload)
+      .eq("id", contentId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Updated content ${contentId} by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "updateDepartmentContent");
+  }
+}
+
+export async function publishDepartmentContent(
+  departmentId: string,
+  contentId: string,
+  isPublished: boolean
+): Promise<ApiResponse<any>> {
+  const idRes = uuidSchema.safeParse(contentId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await (supabase as any)
+      .from("content_items")
+      .update({ status: isPublished ? "published" : "draft", updated_at: new Date().toISOString() })
+      .eq("id", contentId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Published content ${contentId} (${isPublished}) by user ${auth.userId}`);
+    return { success: true, data };
+  } catch (err) {
+    return handleServiceError(err, "publishDepartmentContent");
+  }
+}
+
+export async function deleteDepartmentContent(
+  departmentId: string,
+  contentId: string
+): Promise<ApiResponse<void>> {
+  const idRes = uuidSchema.safeParse(contentId);
+  const deptRes = uuidSchema.safeParse(departmentId);
+  if (!idRes.success || !deptRes.success) {
+    return { success: false, error: { code: "VALIDATION_ERROR", message: "Invalid UUID provided." } };
+  }
+
+  const auth = await verifyDepartmentAuth("department_admin", departmentId);
+  if (!auth.success) return auth;
+
+  try {
+    const supabase = await createClient();
+    const { error } = await (supabase as any)
+      .from("content_items")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", contentId);
+
+    if (error) throw error;
+    logger.info(`DepartmentAction: Deleted content ${contentId} by user ${auth.userId}`);
+    return { success: true };
+  } catch (err) {
+    return handleServiceError(err, "deleteDepartmentContent");
   }
 }

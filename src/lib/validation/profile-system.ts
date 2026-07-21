@@ -44,8 +44,30 @@ export const basicProfileSchema = z.object({
   gender: z
     .enum(["male", "female", "other", "prefer_not_to_say"])
     .optional(),
+  date_of_birth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date of birth must follow the YYYY-MM-DD format.")
+    .optional(),
   avatar_url: z.string().url("Invalid avatar image URL.").optional(),
   cover_url: z.string().url("Invalid cover image URL.").optional(),
+  level: z.string().optional(),
+  stream: z.string().optional(),
+  department_name: z.string().optional(),
+  batch_year: z.string().optional(),
+  profile_type: z.enum([
+    "student",
+    "teacher",
+    "alumni",
+    "department_cr",
+    "hostel_bmc",
+    "organization_admin",
+    "contributor",
+    "volunteer",
+    "external_participant",
+    "admin",
+    "super_admin"
+  ]).optional(),
+  university_name: z.string().optional(),
 });
 
 /**

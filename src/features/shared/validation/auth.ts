@@ -8,13 +8,15 @@ export const RegisterSchema = z
     confirmPassword: z.string().min(8, "Confirm Password must be at least 8 characters"),
     isRavenshawvian: z.enum(["Yes", "No"]),
 
-    // Role (Always required for Yes, mapped as "student | alumni | teacher" for No)
-    role: z.enum(["student", "alumni", "teacher"]),
+    // Role (Always required for Yes, mapped as "external_participant" for No)
+    role: z.enum(["student", "alumni", "teacher", "external_participant"]),
 
     // If Yes -> Student or Alumni or Teacher
     level: z.enum(["+2", "UG", "PG", "PhD"]).optional(),
+    stream: z.string().optional(),
     department: z.string().optional(),
-    batch: z.string().optional(),
+    entryYear: z.string().optional(),
+    exitYear: z.string().optional(),
     hostel: z.string().optional(),
     gender: z.enum(["male", "female", "other"]).optional(),
     currentProfession: z.string().optional(),
@@ -38,11 +40,12 @@ export const RegisterSchema = z
     }
 
     if (data.isRavenshawvian === "Yes") {
-      if (!data.department) {
+      // Teachers always need a department
+      if (data.role === "teacher" && !data.department) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["department"],
-          message: "Department is required for Ravenshawvians",
+          message: "Please select your department.",
         });
       }
 
@@ -54,12 +57,26 @@ export const RegisterSchema = z
             message: "Level is required",
           });
         }
-        if (!data.batch) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["batch"],
-            message: "Batch is required",
-          });
+
+        if (data.level === "+2") {
+          if (!data.stream) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["stream"], message: "Please select your stream." });
+          }
+          if (!data.entryYear || !/^\d{4}$/.test(data.entryYear)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["entryYear"], message: "Enter a valid four-digit entry year." });
+          }
+        } else if (data.level) { // UG, PG, PhD
+          if (!data.department) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["department"], message: "Please select your department." });
+          }
+          if (!data.entryYear || !/^\d{4}$/.test(data.entryYear)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["entryYear"], message: "Enter a valid four-digit entry year." });
+          }
+          if (!data.exitYear || !/^\d{4}$/.test(data.exitYear)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["exitYear"], message: "Enter a valid four-digit exit year." });
+          } else if (data.entryYear && /^\d{4}$/.test(data.entryYear) && parseInt(data.exitYear) <= parseInt(data.entryYear)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["exitYear"], message: "Exit year must be later than entry year." });
+          }
         }
       }
 
@@ -90,18 +107,31 @@ export const RegisterSchema = z
     } else {
       // isRavenshawvian === "No"
       if (!data.universityName) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["universityName"],
-          message: "University / College Name is required",
-        });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["universityName"], message: "University / College Name is required" });
       }
       if (!data.level) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["level"],
-          message: "Level is required",
-        });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["level"], message: "Level is required" });
+      }
+
+      if (data.level === "+2") {
+        if (!data.stream) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["stream"], message: "Please select your stream." });
+        }
+        if (!data.entryYear || !/^\d{4}$/.test(data.entryYear)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["entryYear"], message: "Enter a valid four-digit entry year." });
+        }
+      } else if (data.level) { // UG, PG, PhD
+        if (!data.department) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["department"], message: "Please select your department." });
+        }
+        if (!data.entryYear || !/^\d{4}$/.test(data.entryYear)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["entryYear"], message: "Enter a valid four-digit entry year." });
+        }
+        if (!data.exitYear || !/^\d{4}$/.test(data.exitYear)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["exitYear"], message: "Enter a valid four-digit exit year." });
+        } else if (data.entryYear && /^\d{4}$/.test(data.entryYear) && parseInt(data.exitYear) <= parseInt(data.entryYear)) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["exitYear"], message: "Exit year must be later than entry year." });
+        }
       }
     }
   });

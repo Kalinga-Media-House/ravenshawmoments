@@ -5,36 +5,27 @@
 -- =============================================================================
 
 -- 1. Create Hostel Type Enum if not exists
+-- NOTE: hostel_type already created in 002_enums.sql. hostel_type_enum is a
+-- supplementary enum for the Housing Hub private-sponsored category.
 DO $$ BEGIN
   CREATE TYPE hostel_type_enum AS ENUM ('university_boys', 'university_girls', 'private_sponsored');
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
 
--- 2. Core Hostels & Housing Hub Table
-CREATE TABLE IF NOT EXISTS public.hostels (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR(255) NOT NULL,
-  slug VARCHAR(255) NOT NULL UNIQUE,
-  hostel_type hostel_type_enum NOT NULL DEFAULT 'university_boys',
-  description TEXT,
-  history TEXT,
-  address TEXT NOT NULL,
-  google_maps_url TEXT,
-  contact_number VARCHAR(50),
-  contact_email VARCHAR(255),
-  owner_name VARCHAR(255), -- Used for Housing Hub private hostels
-  rent_info TEXT,          -- Used for Housing Hub private hostels
-  room_types JSONB DEFAULT '[]'::jsonb,
-  facilities JSONB DEFAULT '[]'::jsonb,
-  cover_image_url TEXT,
-  logo_url TEXT,
-  is_verified BOOLEAN NOT NULL DEFAULT false,
-  is_sponsored BOOLEAN NOT NULL DEFAULT false,
-  is_active BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+-- 2. Enhance existing hostels table with Housing Hub columns
+-- The hostels table was created in 003_master_data.sql. We add new columns additively.
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS history text;
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS address text;
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS google_maps_url text;
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS contact_number varchar(50);
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS contact_email varchar(255);
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS owner_name varchar(255);
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS rent_info text;
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS room_types jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS facilities jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS is_verified boolean NOT NULL DEFAULT false;
+ALTER TABLE public.hostels ADD COLUMN IF NOT EXISTS is_sponsored boolean NOT NULL DEFAULT false;
 
 -- 3. Hostel Wardens Table (University Hostels)
 CREATE TABLE IF NOT EXISTS public.hostel_wardens (
@@ -176,14 +167,20 @@ SELECT
   h.hostel_type,
   h.description,
   h.address,
-  h.cover_image_url,
-  h.logo_url,
+  h.cover_media_id,
+  cover_mf.storage_bucket AS cover_storage_bucket,
+  cover_mf.storage_path AS cover_storage_path,
+  h.logo_media_id,
+  logo_mf.storage_bucket AS logo_storage_bucket,
+  logo_mf.storage_path AS logo_storage_path,
   h.is_verified,
   h.is_sponsored,
   h.rent_info,
   h.contact_number,
   (SELECT hw.name FROM public.hostel_wardens hw WHERE hw.hostel_id = h.id AND hw.is_current = true LIMIT 1) AS current_warden_name
 FROM public.hostels h
+LEFT JOIN public.media_files cover_mf ON cover_mf.id = h.cover_media_id
+LEFT JOIN public.media_files logo_mf ON logo_mf.id = h.logo_media_id
 WHERE h.is_active = true AND h.is_verified = true;
 
 -- =============================================================================

@@ -1,48 +1,42 @@
-
-import React, { Suspense } from "react";
+import React from "react";
 import { Metadata } from "next";
-import { Search } from "lucide-react";
+import { GalleryDirectory } from "@/features/gallery/components";
+import { InnerPageHero } from "@/features/shared/components";
+import { innerPageHeroImages } from "@/config/innerPageHeroImages";
 
 export const metadata: Metadata = {
-  title: "Global Gallery | Ravenshaw Moments",
-  description: "A curated collection of memories from Ravenshaw.",
+  title: "Gallery | Ravenshaw Moments",
+  description: "Explore Ravenshaw memories, celebrations, achievements, friendships, events, organizations, hostels, departments, and campus life preserved across generations.",
 };
 
 export const revalidate = 3600;
 
-export default async function GalleryFeedPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string; page?: string }>;
-}) {
-  const resolvedParams = await searchParams;
-  const q = resolvedParams.q || "";
-  const page = parseInt(resolvedParams.page || "1", 10);
-  
+export default function GalleryPage() {
   return (
-    <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8 max-w-7xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
-        <div>
-          <h1 className="text-4xl font-extrabold tracking-tight mb-2">Global Gallery</h1>
-          <p className="text-lg text-muted-foreground">A curated collection of memories from Ravenshaw.</p>
+    <div className="flex flex-col min-h-screen">
+      <InnerPageHero
+        title="Every Moment Has a Story"
+        eyebrow="Memories Across Generations"
+        description="Explore the memories, celebrations, achievements, friendships, and everyday moments that continue to shape the story of Ravenshaw."
+        breadcrumbs={[
+          { label: "Home", href: "/" },
+          { label: "Gallery" }
+        ]}
+        backgroundImage={innerPageHeroImages.gallery}
+      >
+        {/* Dynamic Gallery Summary based on our 5 canonical items */}
+        <div className="flex flex-wrap items-center gap-4 text-[#E9B936] text-sm font-bold">
+          <span className="bg-[#E9B936]/10 px-4 py-2 rounded-full border border-[#E9B936]/20">
+            5 Memories Preserved
+          </span>
+          <span className="bg-[#E9B936]/10 px-4 py-2 rounded-full border border-[#E9B936]/20">
+            2 Communities Represented
+          </span>
         </div>
-        
-        <div className="flex gap-4 items-center">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="pl-10 pr-4 py-2 bg-background border border-border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary w-full md:w-64"
-              defaultValue={q}
-            />
-          </div>
-        </div>
-      </div>
+      </InnerPageHero>
 
-      <div className="mt-8 text-center text-muted-foreground py-24 border border-dashed rounded-2xl">
-         Content will be rendered here dynamically via Shared Content Layer.
-      </div>
+      {/* Directory Application */}
+      <GalleryDirectory />
     </div>
   );
 }
