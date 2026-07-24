@@ -69,7 +69,7 @@ export default async function AlumniDirectoryPage({ searchParams }: { searchPara
                     {profile.current_position} {profile.company ? `at ${profile.company}` : ''}
                   </CardDescription>
                   <p className="text-sm text-muted-foreground truncate">
-                    {profile.profiles?.departments?.name} • {profile.profiles?.batches?.name}
+                    {profile.profiles?.department_name} • {profile.profiles?.batch_year}
                   </p>
                 </div>
               </div>

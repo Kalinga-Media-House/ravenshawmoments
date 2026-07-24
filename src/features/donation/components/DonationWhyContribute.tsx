@@ -1,78 +1,63 @@
 import React from "react";
-import { Camera, Database, Users, Sparkles } from "lucide-react";
+import { Archive, Trophy, Sparkles, Code2, University, Users } from "lucide-react";
 
-const reasons = [
-  {
-    icon: Camera,
-    title: "Preserve Memories",
-    description:
-      "Help protect photographs, stories, events, and shared experiences for future generations.",
-  },
-  {
-    icon: Database,
-    title: "Strengthen the Archive",
-    description:
-      "Support reliable infrastructure for organizing and preserving Ravenshaw's growing digital history.",
-  },
-  {
-    icon: Users,
-    title: "Connect Generations",
-    description:
-      "Help students, alumni, departments, hostels, and organizations remain connected through their shared journeys.",
-  },
-  {
-    icon: Sparkles,
-    title: "Support Community Experiences",
-    description:
-      "Contributions may support approved community features, events, competitions, certificates, and preservation initiatives.",
-  },
-];
+export const DonationWhyContribute = () => {
+  const features = [
+    {
+      icon: Archive,
+      title: "Digital Archive",
+      description: "Preserve decades of Ravenshaw history, photographs, and records in our permanent digital vault."
+    },
+    {
+      icon: Trophy,
+      title: "Competition Platform",
+      description: "Support the infrastructure that runs university-wide hackathons and cultural competitions."
+    },
+    {
+      icon: Sparkles,
+      title: "Student Recognition",
+      description: "Fund certificates, digital badges, and hall-of-fame features for outstanding students."
+    },
+    {
+      icon: Code2,
+      title: "Website Development",
+      description: "Keep our servers running and enable new features on the Ravenshaw Moments platform."
+    },
+    {
+      icon: University,
+      title: "Campus Heritage",
+      description: "Support initiatives to document and digitize the architectural heritage of the university."
+    },
+    {
+      icon: Users,
+      title: "Community Initiatives",
+      description: "Help build alumni networks, mentorship programs, and global community connections."
+    }
+  ];
 
-export const DonationWhyContribute: React.FC = () => {
   return (
-    <section
-      aria-labelledby="why-contribute-heading"
-      className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8"
-    >
-      <div className="max-w-5xl mx-auto space-y-10">
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <p className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-[#8F0028]">
-            Why It Matters
-          </p>
-          <h2
-            id="why-contribute-heading"
-            className="text-2xl sm:text-3xl md:text-4xl font-black text-[#171214] tracking-tight"
-          >
-            A Home for Memories That Deserve to Remain
-          </h2>
-          <p className="text-sm sm:text-base text-[#756A6E] leading-relaxed">
-            Ravenshaw Moments is being created to preserve the experiences that
-            often disappear with time. Photographs, friendships, hostel life,
-            department stories, achievements, celebrations, events, and personal
-            journeys can remain connected in one meaningful digital space.
+    <section id="why-donate" className="py-20 lg:py-28 bg-[#3A0016] text-white">
+      <div className="container px-4 md:px-6 mx-auto">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-sm font-black text-[#D4AF37] uppercase tracking-widest mb-4">Why Contribute</h2>
+          <h3 className="text-3xl md:text-5xl font-black font-serif mb-6">Building Our Future Together</h3>
+          <p className="text-lg text-white/70">
+            Your contributions directly fund the preservation of our history and the development of our digital ecosystem.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {reasons.map((reason) => {
-            const Icon = reason.icon;
-            return (
-              <div
-                key={reason.title}
-                className="bg-white shadow-sm rounded-2xl p-6 border border-[#8F0028]/10 space-y-3 hover:border-[#E8B83F]/30 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-xl bg-[#8F0028]/10 border border-[#E8B83F]/30 flex items-center justify-center text-[#8F0028]">
-                  <Icon className="w-5 h-5" aria-hidden="true" />
-                </div>
-                <h3 className="text-base sm:text-lg font-black text-[#171214]">
-                  {reason.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-[#756A6E] leading-relaxed">
-                  {reason.description}
-                </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {features.map((feature, idx) => (
+            <div key={idx} className="group p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#D4AF37]/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-full bg-[#D4AF37]/20 flex items-center justify-center mb-6 text-[#D4AF37] group-hover:scale-110 transition-transform">
+                <feature.icon className="w-7 h-7" />
               </div>
-            );
-          })}
+              <h4 className="text-xl font-bold mb-3">{feature.title}</h4>
+              <p className="text-white/60 leading-relaxed text-sm">
+                {feature.description}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

@@ -162,7 +162,7 @@ export class DepartmentCRRepository extends BaseRepository<DbRow> {
   ): Promise<DbRow[]> {
     let query = this.supabase
       .from("department_crs")
-      .select("*, profiles(id, full_name, username, avatar_url, email)")
+      .select("*, profiles(id, full_name, username, email)")
       .eq("department_id", departmentId);
 
     if (activeOnly) {
@@ -274,7 +274,7 @@ export class DepartmentTeacherRepository extends BaseRepository<DbRow> {
   ): Promise<DbRow[]> {
     let query = this.supabase
       .from("department_teachers")
-      .select("*, profiles(id, full_name, username, avatar_url)")
+      .select("*, profiles(id, full_name, username)")
       .eq("department_id", departmentId);
 
     if (activeOnly) {
@@ -294,7 +294,7 @@ export class DepartmentTeacherRepository extends BaseRepository<DbRow> {
   async findHodByDepartmentId(departmentId: string): Promise<DbRow | null> {
     const { data, error } = await this.supabase
       .from("department_teachers")
-      .select("*, profiles(id, full_name, username, avatar_url)")
+      .select("*, profiles(id, full_name, username)")
       .eq("department_id", departmentId)
       .eq("is_hod", true)
       .eq("is_active", true)
@@ -382,7 +382,7 @@ export class DepartmentStudentRepository extends BaseRepository<DbRow> {
   ): Promise<DbRow[]> {
     let query = this.supabase
       .from("department_students")
-      .select("*, profiles(id, full_name, username, avatar_url)")
+      .select("*, profiles(id, full_name, username)")
       .eq("department_id", departmentId)
       .eq("is_active", true);
 
@@ -495,7 +495,7 @@ export class DepartmentNoticeRepository extends BaseRepository<DbRow> {
   ): Promise<DbRow[]> {
     let query = this.supabase
       .from("department_notices")
-      .select("*, profiles!published_by(id, full_name, username, avatar_url)")
+      .select("*, profiles!published_by(id, full_name, username)")
       .eq("department_id", departmentId);
 
     if (filter?.isPublished !== undefined) {
@@ -522,7 +522,7 @@ export class DepartmentNoticeRepository extends BaseRepository<DbRow> {
   async findBySlug(departmentId: string, slug: string): Promise<DbRow | null> {
     const { data, error } = await this.supabase
       .from("department_notices")
-      .select("*, profiles!published_by(id, full_name, username, avatar_url)")
+      .select("*, profiles!published_by(id, full_name, username)")
       .eq("department_id", departmentId)
       .eq("slug", slug)
       .maybeSingle();
@@ -763,7 +763,7 @@ export class DepartmentPublicationRepository extends BaseRepository<DbRow> {
   ): Promise<DbRow[]> {
     let query = this.supabase
       .from("department_publications")
-      .select("*, profiles!uploaded_by(id, full_name, username, avatar_url)")
+      .select("*, profiles!uploaded_by(id, full_name, username)")
       .eq("department_id", departmentId);
 
     if (filter?.publicationType) {
@@ -789,7 +789,7 @@ export class DepartmentPublicationRepository extends BaseRepository<DbRow> {
   async findBySlug(departmentId: string, slug: string): Promise<DbRow | null> {
     const { data, error } = await this.supabase
       .from("department_publications")
-      .select("*, profiles!uploaded_by(id, full_name, username, avatar_url)")
+      .select("*, profiles!uploaded_by(id, full_name, username)")
       .eq("department_id", departmentId)
       .eq("slug", slug)
       .maybeSingle();

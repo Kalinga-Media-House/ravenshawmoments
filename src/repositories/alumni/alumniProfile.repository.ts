@@ -57,11 +57,8 @@ export class AlumniProfileRepository { protected supabase: SupabaseClient<Databa
         profiles!inner(
           id,
           full_name,
-          
-          batch_id,
-          department_id,
-          batches(name),
-          departments(name)
+          batch_year,
+          department_name
         )
       `)
       .eq("verification_status", "verified")
@@ -96,10 +93,9 @@ export class AlumniProfileRepository { protected supabase: SupabaseClient<Databa
         profiles!inner(
           id,
           full_name,
-          
           email,
-          batches(name),
-          departments(name)
+          batch_year,
+          department_name
         )
       `)
       .eq("verification_status", "pending")

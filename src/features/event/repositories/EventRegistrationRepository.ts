@@ -11,7 +11,7 @@ export class EventRegistrationRepository {
   async getRegistrationsByEventId(eventId: string) {
     const { data, error } = await this.supabase
       .from('event_registrations')
-      .select('*, profile:profiles!event_registrations_profile_id_fkey(id, first_name, last_name, avatar_url, public_id)')
+      .select('*, profile:profiles!event_registrations_profile_id_fkey(id, first_name, last_name, public_id)')
       .eq('event_id', eventId)
       .order('registration_date', { ascending: false });
 

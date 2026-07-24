@@ -26,8 +26,7 @@ export async function getPublicContributors(
     .from("vw_public_contributors")
     .select("*")
     .eq("contribution_year", year)
-    .eq("contribution_month", month)
-    .order("amount", { ascending: false, nullsFirst: false });
+    .eq("contribution_month", month);
 
   if (error || !data) {
     console.error("Error fetching contributors:", error);

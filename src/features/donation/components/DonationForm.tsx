@@ -6,9 +6,6 @@ import {
   User,
   Mail,
   Phone,
-  Eye,
-  EyeOff,
-  MessageSquare,
   ArrowRight,
   ArrowLeft,
   Shield,
@@ -16,16 +13,17 @@ import {
   CheckCircle2,
   AlertTriangle,
   Check,
+  Award,
+  CreditCard,
+  Heart
 } from "lucide-react";
 import {
   DONATION_PRESETS,
   DONATION_LIMITS,
   DONATION_CURRENCY,
-  MAX_MESSAGE_LENGTH,
   formatDonationAmount,
   validateDonationAmount,
   DEFAULT_CONTRIBUTION_PURPOSE,
-  PAYU_PRODUCT_INFO,
 } from "../config/donation";
 
 // =============================================================================
@@ -49,15 +47,7 @@ interface FormErrors {
   phone?: string;
 }
 
-type Step = 1 | 2 | 3 | 4 | 5;
-
-const STEP_LABELS: Record<Step, string> = {
-  1: "Contribution",
-  2: "Your Information",
-  3: "Recognition",
-  4: "Review",
-  5: "Secure Payment",
-};
+type Step = 1 | 2 | 3;
 
 // =============================================================================
 // Component
@@ -75,7 +65,7 @@ export function DonationForm({
     fullName: "",
     email: "",
     phone: "",
-    isPublic: false,
+    isPublic: true,
     purpose: DEFAULT_CONTRIBUTION_PURPOSE,
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -129,9 +119,6 @@ export function DonationForm({
     if (!name) {
       newErrors.fullName = "Full name is required.";
       valid = false;
-    } else if (name.length > 200) {
-      newErrors.fullName = "Full name is too long.";
-      valid = false;
     }
 
     const email = formData.email.trim();
@@ -156,10 +143,6 @@ export function DonationForm({
     return valid;
   };
 
-  const validateStep3 = (): boolean => {
-    return true;
-  };
-
   // ==========================================================================
   // Navigation
   // ==========================================================================
@@ -168,8 +151,7 @@ export function DonationForm({
     setSubmitError(null);
     if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
-    if (step === 3 && !validateStep3()) return;
-    setStep((s) => Math.min(s + 1, 5) as Step);
+    setStep((s) => Math.min(s + 1, 3) as Step);
   };
 
   const goBack = () => {
@@ -207,479 +189,200 @@ export function DonationForm({
       const result = await response.json();
 
       if (!response.ok) {
-        setSubmitError(
-          result.error || "We could not start the secure payment process. Please try again."
-        );
+        setSubmitError(result.error || "We could not start the secure payment process. Please try again.");
         setIsSubmitting(false);
         return;
       }
-
-      // Set PayU form params to trigger auto-submit
       setPayuParams(result);
     } catch {
-      setSubmitError(
-        "Payment setup is temporarily unavailable. Please try again later."
-      );
+      setSubmitError("Payment setup is temporarily unavailable. Please try again later.");
       setIsSubmitting(false);
     }
   };
 
-  // ==========================================================================
-  // Render Helpers
-  // ==========================================================================
-
   const effectiveAmount = getEffectiveAmount();
 
   return (
-    <section
-      aria-labelledby="donation-form-heading"
-      className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8"
-    >
-      <div className="max-w-2xl mx-auto">
-        {/* Test Mode Badge */}
+    <section id="donate" className="relative py-20 lg:py-28 bg-[#FFFDF8] overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-[30vh] bg-gradient-to-b from-[#3A0016]/5 to-transparent z-0" />
+      <div className="container relative z-10 px-4 md:px-6 mx-auto max-w-4xl">
+        
         {isTestMode && (
-          <div className="mb-6 flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-900/30 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-widest">
-            <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>PayU Test Mode</span>
+          <div className="mb-8 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-amber-100 border border-amber-300 text-amber-800 text-sm font-bold uppercase tracking-widest max-w-fit mx-auto shadow-sm">
+            <AlertTriangle className="w-4 h-4" />
+            <span>PayU Test Mode Active</span>
           </div>
         )}
 
-        <div className="bg-white shadow-sm rounded-3xl border border-[#8F0028]/10 overflow-hidden">
-          {/* Header */}
-          <div className="p-6 sm:p-8 border-b border-[#8F0028]/10">
-            <h2
-              id="donation-form-heading"
-              className="text-xl sm:text-2xl font-black text-[#171214] tracking-tight"
-            >
-              Make a Contribution
-            </h2>
-            <p className="text-xs text-[#756A6E] mt-1 font-medium">
-              Your contribution supports the continued development and
-              preservation of Ravenshaw Moments.
-            </p>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-5xl font-black text-[#3A0016] font-serif mb-4">
+            Become a Contributor
+          </h2>
+          <p className="text-[#3A0016]/70 text-lg">
+            Follow the simple steps below to make your secure contribution.
+          </p>
+        </div>
 
-            {/* Step Indicator */}
-            <nav
-              aria-label="Contribution steps"
-              className="mt-5 flex items-center gap-1"
-            >
-              {([1, 2, 3, 4, 5] as Step[]).map((s) => (
-                <div key={s} className="flex items-center flex-1 last:flex-none">
-                  <div className="flex flex-col items-center gap-1 flex-1 min-w-0">
-                    <div
-                      className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors ${
-                        s < step
-                          ? "bg-green-600 border-green-500 text-[#171214]"
-                          : s === step
-                            ? "bg-[var(--color-rm-maroon)] border-[#E8B83F]/30 text-[#8F0028]"
-                            : "bg-white border-[#8F0028]/10 text-[#756A6E]"
-                      }`}
-                      aria-current={s === step ? "step" : undefined}
-                    >
-                      {s < step ? (
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      ) : (
-                        s
-                      )}
-                    </div>
-                    <span
-                      className={`text-[9px] font-bold uppercase tracking-wider text-center leading-tight ${
-                        s === step ? "text-[#171214]" : "text-[#756A6E]"
-                      } hidden sm:block`}
-                    >
-                      {STEP_LABELS[s]}
-                    </span>
-                  </div>
-                  {s < 5 && (
-                    <div
-                      className={`h-px flex-1 mx-1 ${
-                        s < step ? "bg-green-600" : "bg-white"
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </nav>
-          </div>
+        {/* Timeline Indicator */}
+        <div className="flex items-center justify-between mb-12 relative max-w-2xl mx-auto">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-[#3A0016]/10 rounded-full z-0" />
+          <div 
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-[#D4AF37] to-[#C8A046] rounded-full z-0 transition-all duration-500 ease-in-out"
+            style={{ width: `${((step - 1) / 2) * 100}%` }}
+          />
+          
+          {[
+            { id: 1, icon: Heart, label: "Amount" },
+            { id: 2, icon: User, label: "Details" },
+            { id: 3, icon: CreditCard, label: "Payment" }
+          ].map((s) => (
+            <div key={s.id} className="relative z-10 flex flex-col items-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 shadow-lg ${s.id === step ? "bg-[#D4AF37] text-white scale-110" : s.id < step ? "bg-[#3A0016] text-white" : "bg-white text-[#3A0016]/40 border-2 border-[#3A0016]/10"}`}>
+                {s.id < step ? <CheckCircle2 className="w-6 h-6" /> : <s.icon className="w-5 h-5" />}
+              </div>
+              <span className={`absolute -bottom-8 w-32 text-center text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors duration-300 ${s.id === step ? "text-[#D4AF37]" : s.id < step ? "text-[#3A0016]" : "text-[#3A0016]/40"}`}>
+                {s.label}
+              </span>
+            </div>
+          ))}
+        </div>
 
-          {/* Step Content */}
-          <div className="p-6 sm:p-8 min-h-[280px]">
-            {/* Step 1: Amount */}
+        {/* Form Container */}
+        <div className="mt-16 bg-white/70 backdrop-blur-xl border border-[#3A0016]/10 rounded-[2rem] shadow-2xl p-6 sm:p-10 lg:p-14 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4AF37]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#3A0016]/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+          
+          <div className="relative z-10">
+            {/* Step 1: Choose Amount */}
             {step === 1 && (
-              <fieldset>
-                <legend className="text-sm font-black text-[#8F0028] uppercase tracking-wider mb-4">
-                  Choose Your Contribution
-                </legend>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h3 className="text-2xl font-black text-[#3A0016] mb-8 text-center font-serif">Choose Your Contribution</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
                   {DONATION_PRESETS.map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => {
-                        setFormData((p) => ({
-                          ...p,
-                          amount: preset,
-                          customAmount: "",
-                        }));
+                        setFormData((p) => ({ ...p, amount: preset, customAmount: "" }));
                         setErrors((p) => ({ ...p, amount: undefined }));
                       }}
-                      className={`relative p-4 rounded-xl text-center font-bold border transition-all ${
+                      className={`relative p-6 rounded-2xl text-center transition-all duration-300 ${
                         formData.amount === preset
-                          ? "bg-[var(--color-rm-maroon)] border-[#E8B83F]/30 text-[#8F0028] shadow-lg"
-                          : "bg-white border-[#8F0028]/10 text-[#171214] hover:border-[#8F0028]/10"
+                          ? "bg-gradient-to-br from-[#3A0016] to-[#4A0D1A] text-white shadow-[0_10px_30px_rgba(58,0,22,0.3)] border-[#D4AF37] border"
+                          : "bg-white text-[#3A0016] border border-[#3A0016]/10 hover:border-[#D4AF37]/50 hover:shadow-lg hover:-translate-y-1"
                       }`}
-                      aria-pressed={formData.amount === preset}
                     >
-                      <span className="text-lg">
-                        {DONATION_CURRENCY.symbol}
-                        {preset.toLocaleString("en-IN")}
+                      <span className="text-2xl md:text-3xl font-black block">
+                        {DONATION_CURRENCY.symbol}{preset.toLocaleString("en-IN")}
                       </span>
                     </button>
                   ))}
                 </div>
-
-                {/* Custom Amount */}
-                <div className="space-y-2">
-                  <label
-                    htmlFor="custom-amount"
-                    className="text-xs font-bold text-[#756A6E] uppercase tracking-wider"
-                  >
-                    Or enter a custom amount ({DONATION_CURRENCY.code})
-                  </label>
-                  <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#756A6E]">
-                      <IndianRupee className="w-4 h-4" aria-hidden="true" />
-                    </div>
-                    <input
-                      id="custom-amount"
-                      type="number"
-                      inputMode="numeric"
-                      min={DONATION_LIMITS.min}
-                      max={DONATION_LIMITS.max}
-                      step="1"
-                      placeholder={`${DONATION_LIMITS.min} to ${DONATION_LIMITS.max.toLocaleString("en-IN")}`}
-                      value={formData.customAmount}
-                      onChange={(e) => {
-                        setFormData((p) => ({
-                          ...p,
-                          customAmount: e.target.value,
-                          amount: null,
-                        }));
-                        setErrors((p) => ({ ...p, amount: undefined }));
-                      }}
-                      onFocus={() => {
-                        setFormData((p) => ({ ...p, amount: null }));
-                      }}
-                      className={`w-full pl-10 pr-4 py-3 rounded-xl bg-white border text-[#171214] placeholder:text-[#756A6E] focus:outline-none focus:ring-2 focus:ring-[var(--color-rm-gold)]/50 transition-colors ${
-                        errors.amount
-                          ? "border-red-500/60"
-                          : "border-[#8F0028]/10"
-                      }`}
-                      aria-invalid={!!errors.amount}
-                      aria-describedby={
-                        errors.amount ? "amount-error" : undefined
-                      }
-                    />
+                
+                <div className="max-w-md mx-auto relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <IndianRupee className="w-5 h-5 text-[#3A0016]/50" />
                   </div>
-                  {errors.amount && (
-                    <p
-                      id="amount-error"
-                      className="text-xs text-red-400 font-medium"
-                      role="alert"
-                    >
-                      {errors.amount}
-                    </p>
-                  )}
-                </div>
-              </fieldset>
-            )}
-
-            {/* Step 2: Contributor Information */}
-            {step === 2 && (
-              <fieldset className="space-y-5">
-                <legend className="text-sm font-black text-[#8F0028] uppercase tracking-wider mb-4">
-                  Your Information
-                </legend>
-
-                {/* Full Name */}
-                <div className="space-y-2">
-                  <label
-                    htmlFor="donor-name"
-                    className="text-xs font-bold text-[#756A6E] uppercase tracking-wider flex items-center gap-1"
-                  >
-                    <User className="w-3.5 h-3.5" aria-hidden="true" />
-                    Full Name <span className="text-red-400">*</span>
-                  </label>
                   <input
-                    id="donor-name"
-                    type="text"
-                    value={formData.fullName}
-                    onChange={(e) =>
-                      setFormData((p) => ({
-                        ...p,
-                        fullName: e.target.value,
-                      }))
-                    }
-                    className={`w-full px-4 py-3 rounded-xl bg-white border text-[#171214] placeholder:text-[#756A6E] focus:outline-none focus:ring-2 focus:ring-[var(--color-rm-gold)]/50 ${
-                      errors.fullName
-                        ? "border-red-500/60"
-                        : "border-[#8F0028]/10"
-                    }`}
-                    placeholder="Enter your full name"
-                    required
-                    aria-invalid={!!errors.fullName}
-                    aria-describedby={
-                      errors.fullName ? "name-error" : undefined
-                    }
-                  />
-                  {errors.fullName && (
-                    <p
-                      id="name-error"
-                      className="text-xs text-red-400 font-medium"
-                      role="alert"
-                    >
-                      {errors.fullName}
-                    </p>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div className="space-y-2">
-                  <label
-                    htmlFor="donor-email"
-                    className="text-xs font-bold text-[#756A6E] uppercase tracking-wider flex items-center gap-1"
-                  >
-                    <Mail className="w-3.5 h-3.5" aria-hidden="true" />
-                    Email Address <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    id="donor-email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData((p) => ({
-                        ...p,
-                        email: e.target.value,
-                      }))
-                    }
-                    className={`w-full px-4 py-3 rounded-xl bg-white border text-[#171214] placeholder:text-[#756A6E] focus:outline-none focus:ring-2 focus:ring-[var(--color-rm-gold)]/50 ${
-                      errors.email
-                        ? "border-red-500/60"
-                        : "border-[#8F0028]/10"
-                    }`}
-                    placeholder="your.email@example.com"
-                    required
-                    aria-invalid={!!errors.email}
-                    aria-describedby={
-                      errors.email ? "email-error" : undefined
-                    }
-                  />
-                  {errors.email && (
-                    <p
-                      id="email-error"
-                      className="text-xs text-red-400 font-medium"
-                      role="alert"
-                    >
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-
-                {/* Phone */}
-                <div className="space-y-2">
-                  <label
-                    htmlFor="donor-phone"
-                    className="text-xs font-bold text-[#756A6E] uppercase tracking-wider flex items-center gap-1"
-                  >
-                    <Phone className="w-3.5 h-3.5" aria-hidden="true" />
-                    Phone Number <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    id="donor-phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData((p) => ({
-                        ...p,
-                        phone: e.target.value,
-                      }))
-                    }
-                    className={`w-full px-4 py-3 rounded-xl bg-white border text-[#171214] placeholder:text-[#756A6E] focus:outline-none focus:ring-2 focus:ring-[var(--color-rm-gold)]/50 ${
-                      errors.phone
-                        ? "border-red-500/60"
-                        : "border-[#8F0028]/10"
-                    }`}
-                    placeholder="91XXXXXXXXXX"
-                    required
-                    aria-invalid={!!errors.phone}
-                    aria-describedby={
-                      errors.phone ? "phone-error" : undefined
-                    }
-                  />
-                  {errors.phone && (
-                    <p
-                      id="phone-error"
-                      className="text-xs text-red-400 font-medium"
-                      role="alert"
-                    >
-                      {errors.phone}
-                    </p>
-                  )}
-                  <p className="text-[10px] text-[#756A6E]">
-                    Required by the payment provider for transaction
-                    communication only.
-                  </p>
-                </div>
-              </fieldset>
-            )}
-
-            {/* Step 3: Recognition & Privacy */}
-            {step === 3 && (
-              <fieldset className="space-y-6">
-                <legend className="text-sm font-black text-[#8F0028] uppercase tracking-wider mb-4">
-                  Recognition and Privacy
-                </legend>
-
-                <div className="space-y-4">
-                  <p className="text-sm font-bold text-[#171214]">
-                    Would you like your name to appear in the Contributors section?
-                  </p>
-
-                  <div
-                    role="checkbox"
-                    aria-checked={formData.isPublic}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === " " || e.key === "Enter") {
-                        e.preventDefault();
-                        setFormData((p) => ({ ...p, isPublic: !p.isPublic }));
-                      }
+                    type="number"
+                    placeholder="Custom Amount"
+                    value={formData.customAmount}
+                    onChange={(e) => {
+                      setFormData(p => ({ ...p, customAmount: e.target.value, amount: null }));
+                      setErrors(p => ({ ...p, amount: undefined }));
                     }}
-                    onClick={() =>
-                      setFormData((p) => ({ ...p, isPublic: !p.isPublic }))
-                    }
-                    className={`relative w-full rounded-2xl border transition-all duration-300 ease-in-out cursor-pointer p-5 flex items-start gap-4 ${
-                      formData.isPublic
-                        ? "bg-[#8F0028]/10 border-[#E8B83F]/30 shadow-[0_0_15px_rgba(238,197,126,0.15)]"
-                        : "bg-white border-[#8F0028]/10 hover:border-[#8F0028]/10"
-                    }`}
-                  >
-                    <div
-                      className={`mt-1 w-6 h-6 flex-shrink-0 rounded flex items-center justify-center border transition-all duration-300 ${
-                        formData.isPublic
-                          ? "bg-[#8F0028] border-[#E8B83F] text-black"
-                          : "bg-[#8F0028]/5 border-[#8F0028]/10"
-                      }`}
-                    >
-                      {formData.isPublic && <Check className="w-4 h-4" strokeWidth={3} />}
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
-                        <span className="font-bold text-[#171214] leading-tight">
-                          Display my name publicly
-                        </span>
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase self-start sm:self-auto ${
-                            formData.isPublic
-                              ? "bg-[#8F0028] text-black"
-                              : "bg-white text-[#756A6E]"
-                          }`}
-                        >
-                          {formData.isPublic
-                            ? "Public Recognition"
-                            : "Anonymous"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#756A6E] leading-relaxed pr-2">
-                        Your name may appear in the Contributors section if your
-                        contribution meets the recognition criteria. Your
-                        contribution amount will always remain private.
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-[#756A6E] pt-2 border-t border-[#8F0028]/10">
-                    Your donation amount, contact details, and payment information
-                    will never be displayed publicly.
-                  </p>
-                </div>
-              </fieldset>
-            )}
-
-            {/* Step 4: Review */}
-            {step === 4 && (
-              <div className="space-y-5">
-                <p className="text-sm font-black text-[#8F0028] uppercase tracking-wider">
-                  Review Your Contribution
-                </p>
-
-                <div className="space-y-3">
-                  <ReviewRow
-                    label="Contribution Amount"
-                    value={
-                      effectiveAmount
-                        ? formatDonationAmount(effectiveAmount)
-                        : "Not specified"
-                    }
+                    className={`w-full pl-12 pr-6 py-4 rounded-xl bg-white border text-lg font-bold text-[#3A0016] placeholder:text-[#3A0016]/30 focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all ${errors.amount ? 'border-red-500' : 'border-[#3A0016]/10'}`}
                   />
-                  <ReviewRow label="Currency" value={DONATION_CURRENCY.code} />
-                  <ReviewRow label="Contributor Name" value={formData.fullName} />
-                  <ReviewRow label="Email" value={formData.email} />
-                  <ReviewRow label="Phone" value={formData.phone} />
-                  <ReviewRow
-                    label="Public Recognition"
-                    value={
-                      formData.isPublic
-                        ? "Display my name publicly"
-                        : "Anonymous"
-                    }
-                  />
-                  <ReviewRow
-                    label="Contribution Purpose"
-                    value={formData.purpose}
-                  />
-                </div>
-
-                <div className="p-3 rounded-xl bg-white border border-[#8F0028]/10 text-[10px] text-[#756A6E] leading-relaxed">
-                  <p>
-                    Your contribution supports the continued development,
-                    preservation, infrastructure, and approved community
-                    initiatives of Ravenshaw Moments.
-                  </p>
+                  {errors.amount && <p className="text-red-500 text-sm mt-2 text-center font-medium">{errors.amount}</p>}
                 </div>
               </div>
             )}
 
-            {/* Step 5: Payment */}
-            {step === 5 && (
-              <div className="space-y-6 text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#8F0028]/10 border border-[#E8B83F]/30 text-[#8F0028] mx-auto">
-                  <Shield className="w-8 h-8" aria-hidden="true" />
-                </div>
+            {/* Step 2: Enter Details */}
+            {step === 2 && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-xl mx-auto">
+                <h3 className="text-2xl font-black text-[#3A0016] mb-8 text-center font-serif">Your Details</h3>
+                <div className="space-y-5">
+                  <div>
+                    <label className="text-xs font-bold text-[#3A0016]/70 uppercase tracking-wider ml-1 mb-2 block">Full Name</label>
+                    <input
+                      type="text"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData(p => ({ ...p, fullName: e.target.value }))}
+                      className={`w-full px-5 py-4 rounded-xl bg-white border text-[#3A0016] font-medium focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all ${errors.fullName ? 'border-red-500' : 'border-[#3A0016]/10'}`}
+                      placeholder="e.g. Subhas Chandra Bose"
+                    />
+                    {errors.fullName && <p className="text-red-500 text-xs mt-1 ml-1">{errors.fullName}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-bold text-[#3A0016]/70 uppercase tracking-wider ml-1 mb-2 block">Email Address</label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))}
+                      className={`w-full px-5 py-4 rounded-xl bg-white border text-[#3A0016] font-medium focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all ${errors.email ? 'border-red-500' : 'border-[#3A0016]/10'}`}
+                      placeholder="email@example.com"
+                    />
+                    {errors.email && <p className="text-red-500 text-xs mt-1 ml-1">{errors.email}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-bold text-[#3A0016]/70 uppercase tracking-wider ml-1 mb-2 block">Phone Number</label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))}
+                      className={`w-full px-5 py-4 rounded-xl bg-white border text-[#3A0016] font-medium focus:outline-none focus:ring-2 focus:ring-[#D4AF37] transition-all ${errors.phone ? 'border-red-500' : 'border-[#3A0016]/10'}`}
+                      placeholder="91XXXXXXXXXX"
+                    />
+                    {errors.phone && <p className="text-red-500 text-xs mt-1 ml-1">{errors.phone}</p>}
+                  </div>
 
-                <div className="space-y-2">
-                  <p className="text-lg font-black text-[#171214]">
-                    Secure Payment via PayU
-                  </p>
-                  <p className="text-sm text-[#756A6E] max-w-md mx-auto">
-                    You will be securely redirected to PayU to complete your
-                    contribution of{" "}
-                    <span className="text-[#8F0028] font-bold">
-                      {effectiveAmount
-                        ? formatDonationAmount(effectiveAmount)
-                        : ""}
-                    </span>
-                    . Your payment information is handled entirely by PayU.
-                  </p>
+                  <div 
+                    onClick={() => setFormData(p => ({ ...p, isPublic: !p.isPublic }))}
+                    className={`mt-6 p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-4 ${formData.isPublic ? 'bg-[#D4AF37]/10 border-[#D4AF37]' : 'bg-white border-[#3A0016]/10'}`}
+                  >
+                    <div className={`w-6 h-6 rounded flex items-center justify-center shrink-0 mt-0.5 ${formData.isPublic ? 'bg-[#D4AF37] text-white' : 'bg-gray-100 border'}`}>
+                      {formData.isPublic && <Check className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#3A0016]">Publicly recognize my contribution</p>
+                      <p className="text-sm text-[#3A0016]/70 mt-1">Your name may appear on the Contributors board. Your donation amount will remain strictly private.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Secure Payment */}
+            {step === 3 && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-xl mx-auto text-center">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#3A0016] to-[#4A0D1A] mx-auto flex items-center justify-center mb-6 shadow-xl">
+                  <Shield className="w-10 h-10 text-[#D4AF37]" />
+                </div>
+                <h3 className="text-2xl font-black text-[#3A0016] mb-2 font-serif">Secure Checkout</h3>
+                <p className="text-[#3A0016]/70 mb-8">
+                  You are about to make a secure contribution of <span className="font-black text-[#D4AF37] text-lg">{DONATION_CURRENCY.symbol}{effectiveAmount?.toLocaleString("en-IN")}</span>.
+                </p>
+                
+                <div className="bg-white rounded-2xl p-6 border border-[#3A0016]/10 text-left mb-8 shadow-sm">
+                  <div className="flex justify-between py-3 border-b border-[#3A0016]/5">
+                    <span className="text-[#3A0016]/60 font-bold uppercase text-xs">Name</span>
+                    <span className="text-[#3A0016] font-medium">{formData.fullName}</span>
+                  </div>
+                  <div className="flex justify-between py-3 border-b border-[#3A0016]/5">
+                    <span className="text-[#3A0016]/60 font-bold uppercase text-xs">Email</span>
+                    <span className="text-[#3A0016] font-medium">{formData.email}</span>
+                  </div>
+                  <div className="flex justify-between py-3">
+                    <span className="text-[#3A0016]/60 font-bold uppercase text-xs">Visibility</span>
+                    <span className="text-[#3A0016] font-medium">{formData.isPublic ? 'Public' : 'Anonymous'}</span>
+                  </div>
                 </div>
 
                 {submitError && (
-                  <div
-                    className="p-3 rounded-xl bg-red-900/20 border border-red-500/30 text-red-400 text-xs font-medium"
-                    role="alert"
-                  >
+                  <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-medium">
                     {submitError}
                   </div>
                 )}
@@ -688,106 +391,54 @@ export function DonationForm({
                   type="button"
                   onClick={handlePayment}
                   disabled={isSubmitting || hasSubmittedRef.current}
-                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#8F0028] text-white text-sm font-black uppercase tracking-wider hover:bg-[#8F0028]/90 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center py-5 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C8A046] text-white font-black uppercase tracking-widest hover:shadow-[0_10px_25px_rgba(212,175,55,0.4)] transition-all hover:-translate-y-1 disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <>
-                      <Loader2
-                        className="w-4 h-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                      <span>Preparing Secure Payment...</span>
-                    </>
+                    <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Processing...</>
                   ) : (
-                    <>
-                      <Shield className="w-4 h-4" aria-hidden="true" />
-                      <span>Proceed to PayU</span>
-                    </>
+                    <><CreditCard className="w-5 h-5 mr-3" /> Pay Securely via PayU</>
                   )}
                 </button>
-
-                <p className="text-[10px] text-[#756A6E]">
-                  Payment credentials are handled securely by PayU. Ravenshaw
-                  Moments does not store card, UPI, or banking details.
+                <p className="text-xs text-[#3A0016]/50 mt-4 flex items-center justify-center">
+                  <Shield className="w-3 h-3 mr-1" /> 256-bit SSL Encrypted Transaction
                 </p>
               </div>
             )}
           </div>
 
-          {/* Navigation Footer */}
-          {step < 5 && (
-            <div className="px-6 sm:px-8 pb-6 sm:pb-8 flex items-center justify-between gap-3">
-              {step > 1 ? (
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white border border-[#8F0028]/10 text-[#171214] text-xs font-bold uppercase tracking-wider hover:bg-white transition-all"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
-                  Back
-                </button>
-              ) : (
-                <div />
-              )}
-
-              <button
-                type="button"
-                onClick={goNext}
-                className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-[var(--color-rm-maroon)] border border-[#E8B83F]/30 text-[#8F0028] text-xs font-black uppercase tracking-wider hover:bg-[#8F0028]/10 transition-all"
-              >
-                {step === 4 ? "Continue to Payment" : "Continue"}
-                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
-              </button>
-            </div>
-          )}
-
-          {step === 5 && step > 1 && (
-            <div className="px-6 sm:px-8 pb-6 sm:pb-8">
+          {/* Navigation Controls */}
+          <div className="mt-12 pt-8 border-t border-[#3A0016]/10 flex items-center justify-between relative z-10">
+            {step > 1 ? (
               <button
                 type="button"
                 onClick={goBack}
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white border border-[#8F0028]/10 text-[#171214] text-xs font-bold uppercase tracking-wider hover:bg-white transition-all disabled:opacity-50"
+                className="flex items-center text-[#3A0016]/70 font-bold hover:text-[#3A0016] transition-colors uppercase tracking-wider text-sm disabled:opacity-50"
               >
-                <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
-                Edit Contribution
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back
               </button>
-            </div>
-          )}
+            ) : <div />}
+
+            {step < 3 && (
+              <button
+                type="button"
+                onClick={goNext}
+                className="flex items-center px-8 py-3 rounded-full bg-[#3A0016] text-white font-bold uppercase tracking-wider text-sm hover:bg-[#D4AF37] transition-all hover:shadow-lg"
+              >
+                Continue <ArrowRight className="w-4 h-4 ml-2" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Hidden PayU Redirect Form */}
       {payuParams && (
-        <form
-          ref={payuFormRef}
-          method="POST"
-          action={payuParams.action}
-          style={{ display: "none" }}
-          aria-hidden="true"
-        >
+        <form ref={payuFormRef} method="POST" action={payuParams.action} style={{ display: "none" }}>
           {Object.entries(payuParams.params).map(([key, value]) => (
             <input key={key} type="hidden" name={key} value={value} />
           ))}
         </form>
       )}
     </section>
-  );
-}
-
-// =============================================================================
-// Review Row Component
-// =============================================================================
-
-function ReviewRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start justify-between gap-4 py-2 border-b border-[#8F0028]/10 last:border-0">
-      <span className="text-xs font-bold text-[#756A6E] uppercase tracking-wider shrink-0">
-        {label}
-      </span>
-      <span className="text-sm text-[#171214] font-medium text-right break-words min-w-0">
-        {value}
-      </span>
-    </div>
   );
 }

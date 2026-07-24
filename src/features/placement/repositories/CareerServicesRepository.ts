@@ -14,7 +14,7 @@ export class CareerServicesRepository {
     const filterColumn = role === 'student' ? 'student_profile_id' : 'interviewer_profile_id';
     const { data, error } = await this.supabase
       .from('mock_interviews')
-      .select('*, student:profiles!mock_interviews_student_profile_id_fkey(id, full_name, avatar_url), interviewer:profiles!mock_interviews_interviewer_profile_id_fkey(id, full_name, avatar_url)')
+      .select('*, student:profiles!mock_interviews_student_profile_id_fkey(id, full_name), interviewer:profiles!mock_interviews_interviewer_profile_id_fkey(id, full_name)')
       .eq(filterColumn, profileId)
       .order('scheduled_at', { ascending: true });
     
@@ -37,7 +37,7 @@ export class CareerServicesRepository {
     const filterColumn = role === 'student' ? 'student_profile_id' : 'counselor_profile_id';
     const { data, error } = await this.supabase
       .from('career_counselling_sessions')
-      .select('*, student:profiles!career_counselling_sessions_student_profile_id_fkey(id, full_name, avatar_url), counselor:profiles!career_counselling_sessions_counselor_profile_id_fkey(id, full_name, avatar_url)')
+      .select('*, student:profiles!career_counselling_sessions_student_profile_id_fkey(id, full_name), counselor:profiles!career_counselling_sessions_counselor_profile_id_fkey(id, full_name)')
       .eq(filterColumn, profileId)
       .order('scheduled_at', { ascending: true });
 

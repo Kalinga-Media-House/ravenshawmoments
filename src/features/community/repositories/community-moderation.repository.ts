@@ -94,7 +94,7 @@ export class CommunityModerationRepository {
       .from('community_posts')
       .select(`
         *,
-        author:profiles!author_profile_id (id, full_name, avatar_url)
+        author:profiles!author_profile_id (id, full_name)
       `)
       .eq('moderation_status', 'removed');
 

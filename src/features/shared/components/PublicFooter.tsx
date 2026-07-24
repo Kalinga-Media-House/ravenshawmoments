@@ -9,9 +9,9 @@ export const PublicFooter = () => {
   return (
     <footer className="w-full shrink-0 heritage-footer">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-12 lg:py-16">
-        <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-4 gap-x-1.5 gap-y-5 md:gap-12 lg:gap-8 items-start">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-8 md:gap-10 lg:gap-8 items-start">
           {/* Brand */}
-          <div className="col-span-3 md:col-span-1 lg:col-span-1 space-y-3.5 md:space-y-6 mb-1 md:mb-0">
+          <div className="col-span-2 sm:col-span-2 md:col-span-4 lg:col-span-1 space-y-3.5 md:space-y-6 mb-1 md:mb-0">
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="relative w-10 h-10 transition-transform group-hover:scale-105 shrink-0">
                 <Image 
@@ -94,6 +94,17 @@ export const PublicFooter = () => {
               <li><Link href="/news" className="text-[#F5E8EA]/80 hover:text-[#FFD27A] transition-all duration-200 hover:translate-x-1 inline-block text-[10.5px] sm:text-[11px] md:text-sm leading-[1.25] md:leading-normal py-0 break-words">News & Publications</Link></li>
               <li><Link href="/donations" className="text-[#F5E8EA]/80 hover:text-[#FFD27A] transition-all duration-200 hover:translate-x-1 inline-block text-[10.5px] sm:text-[11px] md:text-sm leading-[1.25] md:leading-normal py-0 break-words">Support the Platform</Link></li>
               <li><Link href="/contact" className="text-[#F5E8EA]/80 hover:text-[#FFD27A] transition-all duration-200 hover:translate-x-1 inline-block text-[10.5px] sm:text-[11px] md:text-sm leading-[1.25] md:leading-normal py-0 break-words">Contact Support</Link></li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div className="col-span-1 md:col-span-1 lg:col-span-1 flex flex-col items-start w-full">
+            <h3 className="text-[#FFD27A] font-semibold md:font-semibold text-[14px] md:text-base mb-2.5 md:mb-6 tracking-wide w-full">Legal</h3>
+            <ul className="space-y-1.5 md:space-y-4 text-sm flex flex-col items-start w-full">
+              <li><Link href="/privacy-policy" className="text-[#F5E8EA]/80 hover:text-[#FFD27A] transition-all duration-200 hover:translate-x-1 inline-block text-[10.5px] sm:text-[11px] md:text-sm leading-[1.25] md:leading-normal py-0 break-words">Privacy Policy</Link></li>
+              <li><Link href="/terms-of-service" className="text-[#F5E8EA]/80 hover:text-[#FFD27A] transition-all duration-200 hover:translate-x-1 inline-block text-[10.5px] sm:text-[11px] md:text-sm leading-[1.25] md:leading-normal py-0 break-words">Terms of Service</Link></li>
+              <li><Link href="/contact" className="text-[#F5E8EA]/80 hover:text-[#FFD27A] transition-all duration-200 hover:translate-x-1 inline-block text-[10.5px] sm:text-[11px] md:text-sm leading-[1.25] md:leading-normal py-0 break-words">Contact Us</Link></li>
+              <li><Link href="/certificates" className="text-[#F5E8EA]/80 hover:text-[#FFD27A] transition-all duration-200 hover:translate-x-1 inline-block text-[10.5px] sm:text-[11px] md:text-sm leading-[1.25] md:leading-normal py-0 break-words">Certificate Verification</Link></li>
             </ul>
           </div>
 

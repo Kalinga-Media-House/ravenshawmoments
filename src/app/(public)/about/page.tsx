@@ -13,6 +13,7 @@ import {
   AboutTransparency,
   AboutCTA,
   AboutClosing,
+  AboutManager,
 } from "@/features/about";
 
 export const metadata: Metadata = {
@@ -57,6 +58,9 @@ export default function AboutPage() {
       {/* Trust, Privacy & Independence Disclaimers */}
       <AboutPrivacy />
       <AboutTransparency />
+
+      {/* Managed By */}
+      <AboutManager />
 
       {/* Join The Journey (Call to Action) */}
       <AboutCTA />

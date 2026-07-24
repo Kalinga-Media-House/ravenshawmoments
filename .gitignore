@@ -37,3 +37,7 @@ coverage/
 
 # Cache
 .cache/
+
+scratch/
+test_queries.mjs
+test_queries3.mjs

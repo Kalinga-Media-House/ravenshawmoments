@@ -45,18 +45,18 @@ export default async function DonationsPage() {
       {/* 1. Hero */}
       <DonationHero />
 
-      {/* 2. Why Contribute */}
-      <DonationWhyContribute />
-
-      {/* 3. Impact Areas */}
-      <DonationImpact />
-
-      {/* 4. Contribution Form OR Payment Unavailable */}
+      {/* 2. Contribution Form OR Payment Unavailable */}
       {payuConfigured ? (
         <DonationForm isTestMode={isTestMode} />
       ) : (
         <DonationPaymentUnavailable />
       )}
+
+      {/* 3. Why Contribute */}
+      <DonationWhyContribute />
+
+      {/* 4. Impact Areas */}
+      <DonationImpact />
 
       {/* 5. Transparency */}
       <DonationTransparency />
@@ -72,13 +72,13 @@ export default async function DonationsPage() {
       {/* 7. Regular Contributors */}
       <RegularContributorsSection contributors={regular} />
 
-      {/* 7. Contributor Privacy Notice */}
+      {/* 8. Contributor Privacy Notice */}
       <ContributorPrivacy />
 
-      {/* 8. FAQ */}
+      {/* 9. FAQ */}
       <DonationFAQ />
 
-      {/* 9. Final CTA */}
+      {/* 10. Final CTA */}
       <DonationCTA />
     </div>
   );

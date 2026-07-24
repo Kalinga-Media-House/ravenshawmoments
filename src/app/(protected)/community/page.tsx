@@ -10,7 +10,7 @@ export default async function CommunityFeedPage() {
   
   let currentUser = null;
   if (user) {
-    const { data } = await supabase.from('profiles').select('id, full_name, avatar_url').eq('id', user.id).single();
+    const { data } = await supabase.from('profiles').select('id, full_name').eq('id', user.id).single();
     currentUser = data;
   }
 

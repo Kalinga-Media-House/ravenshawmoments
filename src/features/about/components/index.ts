@@ -17,3 +17,4 @@ export * from "./AboutFuture";
 export * from "./AboutVisualStory";
 export * from "./AboutCTA";
 export * from "./AboutClosing";
+export * from "./AboutManager";

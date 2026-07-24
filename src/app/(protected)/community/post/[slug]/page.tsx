@@ -21,7 +21,7 @@ export default async function CommunityPostDetailsPage({ params }: { params: { s
   if (user) {
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name, avatar_url, profile_status, is_verified')
+      .select('id, full_name, profile_status, is_verified')
       .eq('id', user.id)
       .single();
     currentUser = data;
@@ -32,7 +32,7 @@ export default async function CommunityPostDetailsPage({ params }: { params: { s
     .from('post_comments')
     .select(`
       *,
-      author:profiles!author_profile_id (id, full_name, avatar_url)
+      author:profiles!author_profile_id (id, full_name)
     `)
     .eq('post_id', post.id)
     .eq('moderation_status', 'published')

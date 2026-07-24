@@ -22,8 +22,8 @@ export class PlacementRegistrationRepository {
       .select(`
         *,
         drive:placement_drives(*, company:companies(*)),
-        profile:profiles(id, public_id, first_name, last_name, avatar_url, username),
-        resume:student_resumes(id, media_id, title, media_files(url))
+        profile:profiles(id, public_id, first_name, last_name, username),
+        resume:student_resumes(id, media_id, title, media_files(*))
       `, { count: 'exact' });
 
     if (options.driveId) {
@@ -56,8 +56,8 @@ export class PlacementRegistrationRepository {
       .select(`
         *,
         drive:placement_drives(*, company:companies(*)),
-        profile:profiles(id, public_id, first_name, last_name, avatar_url, username),
-        resume:student_resumes(id, media_id, title, media_files(url))
+        profile:profiles(id, public_id, first_name, last_name, username),
+        resume:student_resumes(id, media_id, title, media_files(*))
       `)
       .eq('id', id)
       .single();

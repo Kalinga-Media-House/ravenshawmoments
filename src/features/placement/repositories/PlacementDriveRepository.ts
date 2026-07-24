@@ -20,7 +20,7 @@ export class PlacementDriveRepository {
   async getDrives(options: GetPlacementDrivesOptions = {}) {
     let query = this.supabase
       .from('placement_drives')
-      .select('*, company:companies!placement_drives_company_id_fkey(*, logo:media_files!companies_logo_media_id_fkey(url))', { count: 'exact' });
+      .select('*, company:companies!placement_drives_company_id_fkey(*, logo:media_files!companies_logo_media_id_fkey(storage_bucket, storage_path, public_id))', { count: 'exact' });
 
     if (options.companyId) {
       query = query.eq('company_id', options.companyId);
@@ -40,7 +40,7 @@ export class PlacementDriveRepository {
         .from('placement_drives')
         .select(`
           *,
-          company:companies!placement_drives_company_id_fkey(*, logo:media_files!companies_logo_media_id_fkey(url)),
+          company:companies!placement_drives_company_id_fkey(*, logo:media_files!companies_logo_media_id_fkey(storage_bucket, storage_path, public_id)),
           placement_drive_departments!inner(department_id)
         `, { count: 'exact' })
         .eq('placement_drive_departments.department_id', options.departmentId);
@@ -79,7 +79,7 @@ export class PlacementDriveRepository {
       .from('placement_drives')
       .select(`
         *,
-        company:companies!placement_drives_company_id_fkey(*, logo:media_files!companies_logo_media_id_fkey(url)),
+        company:companies!placement_drives_company_id_fkey(*, logo:media_files!companies_logo_media_id_fkey(storage_bucket, storage_path, public_id)),
         departments:placement_drive_departments(department:departments(*))
       `)
       .eq('id', id)
@@ -94,7 +94,7 @@ export class PlacementDriveRepository {
       .from('placement_drives')
       .select(`
         *,
-        company:companies!placement_drives_company_id_fkey(*, logo:media_files!companies_logo_media_id_fkey(url)),
+        company:companies!placement_drives_company_id_fkey(*, logo:media_files!companies_logo_media_id_fkey(storage_bucket, storage_path, public_id)),
         departments:placement_drive_departments(department:departments(*))
       `)
       .eq('slug', slug)

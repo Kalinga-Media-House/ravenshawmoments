@@ -15,6 +15,8 @@ const serverSchema = z.object({
   CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().trim().default("dummy"),
   CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().trim().default("dummy"),
   CLOUDFLARE_R2_BUCKET: z.string().trim().default("dummy"),
+  CLOUDFLARE_R2_ENDPOINT: z.string().trim().default(""),
+  CLOUDFLARE_R2_PUBLIC_URL: z.string().trim().default(""),
 });
 
 const schema = isServer ? clientSchema.merge(serverSchema) : clientSchema;
@@ -30,6 +32,8 @@ const processEnv = {
     CLOUDFLARE_R2_ACCESS_KEY_ID: process.env.CLOUDFLARE_R2_ACCESS_KEY_ID,
     CLOUDFLARE_R2_SECRET_ACCESS_KEY: process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
     CLOUDFLARE_R2_BUCKET: process.env.CLOUDFLARE_R2_BUCKET,
+    CLOUDFLARE_R2_ENDPOINT: process.env.CLOUDFLARE_R2_ENDPOINT,
+    CLOUDFLARE_R2_PUBLIC_URL: process.env.CLOUDFLARE_R2_PUBLIC_URL,
   }),
 };
 
@@ -55,4 +59,6 @@ export const env: Env = isServer
       CLOUDFLARE_R2_ACCESS_KEY_ID: "",
       CLOUDFLARE_R2_SECRET_ACCESS_KEY: "",
       CLOUDFLARE_R2_BUCKET: "",
+      CLOUDFLARE_R2_ENDPOINT: "",
+      CLOUDFLARE_R2_PUBLIC_URL: "",
     } as Env);

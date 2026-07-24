@@ -68,7 +68,7 @@ export class JobPostingRepository { protected supabase: SupabaseClient<Database>
       .select(`
         *,
         profiles!inner(
-          id, full_name, 
+          id, full_name
         )
       `)
       .eq("status", "active")

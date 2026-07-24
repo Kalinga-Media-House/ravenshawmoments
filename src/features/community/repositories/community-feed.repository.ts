@@ -22,9 +22,9 @@ export class CommunityFeedRepository {
       .from('community_posts')
       .select(`
         *,
-        author:profiles!author_profile_id (id, full_name, avatar_url, digital_identities (identity_type, status)),
+        author:profiles!author_profile_id (id, full_name, digital_identities (identity_type, status)),
         media:post_media (
-          media:media_files (id, url, media_type)
+          media:media_files (id, storage_bucket, storage_path, public_id, media_type)
         ),
         reactions:post_reactions (reaction_type, profile_id),
         comments:post_comments (count),
@@ -58,9 +58,9 @@ export class CommunityFeedRepository {
       .from('community_posts')
       .select(`
         *,
-        author:profiles!author_profile_id (id, full_name, avatar_url, digital_identities (identity_type, status)),
+        author:profiles!author_profile_id (id, full_name, digital_identities (identity_type, status)),
         media:post_media (
-          media:media_files (id, url, media_type)
+          media:media_files (id, storage_bucket, storage_path, public_id, media_type)
         ),
         reactions:post_reactions (reaction_type, profile_id),
         group:community_groups!group_id (id, name, slug)

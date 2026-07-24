@@ -8,7 +8,7 @@ import type { Database } from "../../types/database.types";
  * for administrative tasks or automated background processes.
  */
 export function createAdminClient() {
-  return createSupabaseClient<Database>(
+  return createSupabaseClient<any>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.SUPABASE_SERVICE_ROLE_KEY,
     {

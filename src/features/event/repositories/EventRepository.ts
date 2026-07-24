@@ -23,7 +23,7 @@ export class EventRepository {
   async getEvents(options: GetEventsOptions = {}) {
     let query = this.supabase
       .from('events')
-      .select('*, organizer:profiles!events_organizer_id_fkey(id, public_id, first_name, last_name, avatar_url), cover:media_files!events_cover_media_id_fkey(id, url, alt_text)', { count: 'exact' });
+      .select('*, organizer:profiles!events_organizer_id_fkey(id, public_id, full_name), cover:media_files!events_cover_media_id_fkey(id, storage_bucket, storage_path, public_id, alt_text)', { count: 'exact' });
 
     if (options.scopeType) {
       query = query.eq('scope_type', options.scopeType);
@@ -68,7 +68,7 @@ export class EventRepository {
   async getEventById(id: string) {
     const { data, error } = await this.supabase
       .from('events')
-      .select('*, organizer:profiles!events_organizer_id_fkey(id, public_id, first_name, last_name, avatar_url), cover:media_files!events_cover_media_id_fkey(id, url, alt_text)')
+      .select('*, organizer:profiles!events_organizer_id_fkey(id, public_id, full_name), cover:media_files!events_cover_media_id_fkey(id, storage_bucket, storage_path, public_id, alt_text)')
       .eq('id', id)
       .single();
 
@@ -79,7 +79,7 @@ export class EventRepository {
   async getEventBySlug(slug: string) {
     const { data, error } = await this.supabase
       .from('events')
-      .select('*, organizer:profiles!events_organizer_id_fkey(id, public_id, first_name, last_name, avatar_url), cover:media_files!events_cover_media_id_fkey(id, url, alt_text)')
+      .select('*, organizer:profiles!events_organizer_id_fkey(id, public_id, full_name), cover:media_files!events_cover_media_id_fkey(id, storage_bucket, storage_path, public_id, alt_text)')
       .eq('slug', slug)
       .single();
 

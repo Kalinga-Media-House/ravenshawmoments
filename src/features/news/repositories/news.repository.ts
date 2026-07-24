@@ -17,7 +17,7 @@ export class NewsRepository {
   ): Promise<ContentItem[]> {
     let query = this.supabase
       .from('content_items')
-      .select(`*, profiles(full_name, avatar_url)`)
+      .select(`*, profiles(full_name)`)
       .in('content_type', ['news', 'press_release', 'editorial', 'opinion_piece', 'interview', 'magazine_article', 'research_news'])
       .eq('is_published', true)
       .order('published_at', { ascending: false })
@@ -35,7 +35,7 @@ export class NewsRepository {
   async getFeaturedNews(limit: number = 5): Promise<ContentItem[]> {
     const { data, error } = await this.supabase
       .from('content_items')
-      .select(`*, profiles(full_name, avatar_url)`)
+      .select(`*, profiles(full_name)`)
       .in('content_type', ['news', 'press_release', 'editorial', 'opinion_piece', 'interview', 'magazine_article', 'research_news'])
       .eq('is_published', true)
       .eq('is_featured', true)
@@ -51,9 +51,9 @@ export class NewsRepository {
       .from('content_items')
       .select(`
         *,
-        profiles(full_name, avatar_url),
-        media_files!content_items_featured_media_id_fkey(url, alt_text),
-        banner:media_files!content_items_banner_media_id_fkey(url, alt_text)
+        profiles(full_name),
+        media_files!content_items_featured_media_id_fkey(storage_bucket, storage_path, public_id, alt_text),
+        banner:media_files!content_items_banner_media_id_fkey(storage_bucket, storage_path, public_id, alt_text)
       `)
       .eq('slug', slug)
       .single();
@@ -75,7 +75,7 @@ export class NewsRepository {
   async getArticleComments(contentId: string): Promise<ContentComment[]> {
     const { data, error } = await this.supabase
       .from('content_comments')
-      .select(`*, profiles(full_name, avatar_url)`)
+      .select(`*, profiles(full_name)`)
       .eq('content_id', contentId)
       .eq('status', 'published')
       .order('created_at', { ascending: true });

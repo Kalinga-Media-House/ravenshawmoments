@@ -18,7 +18,7 @@ export class CompanyRepository {
   async getCompanies(options: GetCompaniesOptions = {}) {
     let query = this.supabase
       .from('companies')
-      .select('*, logo:media_files!companies_logo_media_id_fkey(id, url, alt_text)', { count: 'exact' });
+      .select('*, logo:media_files!companies_logo_media_id_fkey(id, storage_bucket, storage_path, public_id, alt_text)', { count: 'exact' });
 
     if (options.isActive !== undefined) {
       query = query.eq('is_active', options.isActive);
@@ -44,7 +44,7 @@ export class CompanyRepository {
   async getCompanyById(id: string) {
     const { data, error } = await this.supabase
       .from('companies')
-      .select('*, logo:media_files!companies_logo_media_id_fkey(id, url, alt_text)')
+      .select('*, logo:media_files!companies_logo_media_id_fkey(id, storage_bucket, storage_path, public_id, alt_text)')
       .eq('id', id)
       .single();
 
@@ -55,7 +55,7 @@ export class CompanyRepository {
   async getCompanyBySlug(slug: string) {
     const { data, error } = await this.supabase
       .from('companies')
-      .select('*, logo:media_files!companies_logo_media_id_fkey(id, url, alt_text)')
+      .select('*, logo:media_files!companies_logo_media_id_fkey(id, storage_bucket, storage_path, public_id, alt_text)')
       .eq('slug', slug)
       .single();
 

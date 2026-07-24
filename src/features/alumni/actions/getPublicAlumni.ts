@@ -37,7 +37,7 @@ export async function getPublicAlumniAction(): Promise<PublicAlumniProfile[]> {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "id, public_id, username, slug, full_name, avatar_url, profile_type, bio, level, stream, department_name, batch_year, is_verified, profile_status, is_featured, created_at"
+        "id, public_id, username, slug, full_name, profile_type, bio, level, stream, department_name, batch_year, is_verified, profile_status, is_featured, created_at"
       )
       .eq("profile_type", "alumni")
       .not("slug", "is", null);

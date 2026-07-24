@@ -13,7 +13,7 @@ export class PublicationRepository {
       .from('publications')
       .select(`
         *,
-        media_files!publications_cover_media_id_fkey(url, alt_text)
+        media_files!publications_cover_media_id_fkey(storage_bucket, storage_path, public_id, alt_text)
       `)
       .order('created_at', { ascending: false });
 
@@ -31,7 +31,7 @@ export class PublicationRepository {
       .from('publications')
       .select(`
         *,
-        media_files!publications_cover_media_id_fkey(url, alt_text)
+        media_files!publications_cover_media_id_fkey(storage_bucket, storage_path, public_id, alt_text)
       `)
       .eq('slug', slug)
       .single();
@@ -45,8 +45,8 @@ export class PublicationRepository {
       .from('publication_editions')
       .select(`
         *,
-        media_files!publication_editions_cover_media_id_fkey(url, alt_text),
-        document:media_files!publication_editions_document_media_id_fkey(url)
+        media_files!publication_editions_cover_media_id_fkey(storage_bucket, storage_path, public_id, alt_text),
+        document:media_files!publication_editions_document_media_id_fkey(storage_bucket, storage_path, public_id)
       `)
       .eq('publication_id', publicationId)
       .eq('is_published', true)
@@ -61,8 +61,8 @@ export class PublicationRepository {
       .from('publication_editions')
       .select(`
         *,
-        media_files!publication_editions_cover_media_id_fkey(url, alt_text),
-        document:media_files!publication_editions_document_media_id_fkey(url)
+        media_files!publication_editions_cover_media_id_fkey(storage_bucket, storage_path, public_id, alt_text),
+        document:media_files!publication_editions_document_media_id_fkey(storage_bucket, storage_path, public_id)
       `)
       .eq('publication_id', publicationId)
       .eq('slug', slug)
@@ -81,7 +81,7 @@ export class PublicationRepository {
         display_order,
         content_items (
           *,
-          profiles(full_name, avatar_url)
+          profiles(full_name)
         )
       `)
       .eq('edition_id', editionId)
@@ -104,7 +104,7 @@ export class PublicationRepository {
       .select(`
         id,
         role,
-        profiles (id, full_name, avatar_url)
+        profiles (id, full_name)
       `)
       .eq('publication_id', publicationId);
     

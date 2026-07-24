@@ -11,7 +11,7 @@ export class CommunityInteractionRepository {
       .from('post_comments')
       .select(`
         *,
-        author:profiles!author_profile_id (id, full_name, avatar_url),
+        author:profiles!author_profile_id (id, full_name),
         reactions:comment_reactions (reaction_type, profile_id)
       `)
       .eq('post_id', postId)
@@ -28,7 +28,7 @@ export class CommunityInteractionRepository {
     const { data, error } = await supabase
       .from('post_comments')
       .insert(commentData)
-      .select(`*, author:profiles!author_profile_id(id, full_name, avatar_url)`)
+      .select(`*, author:profiles!author_profile_id(id, full_name)`)
       .single();
 
     if (error) throw error;

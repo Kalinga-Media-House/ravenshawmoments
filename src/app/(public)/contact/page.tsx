@@ -43,8 +43,11 @@ export default function ContactPage() {
           <div className="flex items-start gap-4 p-6 bg-white border border-[#8F0028]/10 rounded-2xl shadow-sm hover:shadow-md hover:border-[#8F0028]/20 transition-all">
              <div className="p-3 bg-[#E8B83F]/10 rounded-full text-[#E8B83F]"><Phone className="w-6 h-6" /></div>
              <div>
-                <h3 className="text-xl font-bold mb-1 text-[#171214]">Phone</h3>
-                <p className="text-[#756A6E]">+91 (123) 456-7890<br/>Mon-Fri, 10am-5pm IST</p>
+                <h3 className="text-xl font-bold mb-1 text-[#171214]">Contact Person</h3>
+                <p className="text-[#171214] font-medium mb-1">BANAMALI KANHAR</p>
+                <p className="text-[#756A6E]">
+                  <a href="tel:+918260672009" className="hover:text-[#8F0028] transition-colors">+91 8260672009</a>
+                </p>
              </div>
           </div>
         </div>

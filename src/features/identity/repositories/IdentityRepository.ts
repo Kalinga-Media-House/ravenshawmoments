@@ -24,7 +24,7 @@ export class IdentityRepository {
     const supabase = (await createClient()) as any;
     const { data, error } = await supabase
       .from('digital_identities')
-      .select('*, profiles(id, full_name, email, avatar_url)')
+      .select('*, profiles(id, full_name, email)')
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
@@ -76,7 +76,7 @@ export class IdentityRepository {
     const supabase = (await createClient()) as any;
     let query = supabase
       .from('identity_verification_requests')
-      .select('*, profiles(id, full_name, email, avatar_url), identity_verification_documents(*)');
+      .select('*, profiles(id, full_name, email), identity_verification_documents(*)');
     
     if (status) {
       query = query.eq('status', status);

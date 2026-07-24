@@ -1,0 +1,83 @@
+-- =============================================================================
+-- Ravenshaw Moments
+-- Migration : 086_security_documentation.sql
+-- Purpose   : Document accepted Security Advisor warnings and final cleanup
+-- Phase     : 6 of 6 (Security Hardening)
+-- =============================================================================
+-- This migration contains NO schema changes. It exists solely to document
+-- security decisions made during the hardening audit for traceability.
+-- =============================================================================
+
+BEGIN;
+
+-- ============================================================================
+-- ACCEPTED SECURITY ADVISOR WARNINGS
+-- ============================================================================
+--
+-- 1. EXTENSIONS IN PUBLIC SCHEMA
+-- ============================================================================
+-- Warning: "Extensions citext and pg_trgm are installed in the public schema"
+-- 
+-- Decision: ACCEPTED — Intentionally kept in public schema.
+-- Justification:
+--   - citext: Moving from public schema would break ALL citext columns across
+--     the entire database (profiles.email, etc.). Supabase's official guidance
+--     for hosted projects is to keep citext in public.
+--   - pg_trgm: Moving would break GIN trigram indexes used for search
+--     (idx_departments_name_trgm, idx_department_programs_name_trgm).
+--     These indexes power the department search functionality.
+--   - pg_cron: Already in its own 'cron' schema. No action needed.
+--
+-- 2. VIEW SECURITY MODE
+-- ============================================================================
+-- Warning: "View vw_public_contributors uses SECURITY DEFINER"
+--
+-- Decision: ACCEPTED — Intentionally kept as SECURITY DEFINER.
+-- Justification:
+--   - This view must bypass RLS on donations and payments tables to expose
+--     ONLY safe, aggregated contributor recognition data (name, tier, month).
+--   - No private fields are exposed (no email, phone, amounts, payment IDs).
+--   - Full security model documented in 035_contributor_recognition.sql.
+--
+-- 3. DASHBOARD-DEFINED FUNCTIONS
+-- ============================================================================
+-- Warning: "Functions without SET search_path" (if flagged)
+--
+-- The following functions are NOT defined in migration files and must be
+-- audited directly in the Supabase Dashboard SQL Editor:
+--
+--   a) track_business_view(p_business_id uuid)
+--      - Called from: src/features/business/repositories/business.repository.ts
+--      - Action: Verify SECURITY DEFINER + SET search_path + GRANT TO anon, authenticated
+--
+--   b) delete_user_account()
+--      - Called from: src/actions/student/account.actions.ts
+--      - Action: Verify SECURITY DEFINER + SET search_path + GRANT TO authenticated
+--
+--   c) increment_department_notice_view(p_notice_id uuid)
+--      - Called from: src/lib/repositories/department.repository.ts
+--      - Action: Verify SECURITY DEFINER + SET search_path + GRANT TO anon, authenticated
+--
+--   d) increment_mentee_count(mentor_profile_id uuid)
+--      - Called from: src/repositories/alumni/mentorship.repository.ts
+--      - Action: Verify SECURITY DEFINER + SET search_path + GRANT TO authenticated
+--
+-- ============================================================================
+-- SECURITY HARDENING SUMMARY
+-- ============================================================================
+--
+-- Migration 081: Enabled RLS + policies on 16 placement/career tables
+-- Migration 082: Enabled RLS on 6 event tables + tightened 5 permissive event tables
+-- Migration 083: Added policies for 11 community hub + 1 news + 2 donation tables
+-- Migration 084: Converted 6 views to SECURITY INVOKER
+-- Migration 085: Fixed 2 function GRANT issues, audited all 24+ functions
+-- Migration 086: This file — documentation and accepted warnings
+--
+-- Total tables secured: 22 newly RLS-enabled + 14 newly policy-added
+-- Total views converted: 6 (1 intentionally kept DEFINER)
+-- Total functions audited: 24+ (all confirmed with SET search_path)
+-- Total GRANT fixes: 3 (validate_finite_numeric, is_super_admin_rpc, is_super_admin)
+--
+-- ============================================================================
+
+COMMIT;

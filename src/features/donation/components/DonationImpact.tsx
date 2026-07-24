@@ -16,103 +16,64 @@ const impactAreas = [
   {
     icon: Globe,
     title: "Website Infrastructure",
-    description:
-      "May support hosting, domain, and platform delivery for Ravenshaw Moments.",
+    description: "Hosting, domain, and global platform delivery for Ravenshaw Moments.",
   },
   {
     icon: Server,
     title: "Secure Hosting",
-    description:
-      "Can help maintain secure and reliable server environments.",
+    description: "Maintains secure and reliable environments for user data.",
   },
   {
     icon: HardDrive,
     title: "Media Storage",
-    description:
-      "Contributes toward storage for photographs, documents, and media files.",
+    description: "Scalable storage for photographs, documents, and rich media files.",
   },
   {
     icon: Archive,
     title: "Digital Archive Preservation",
-    description:
-      "May support the long-term organization and preservation of Ravenshaw's digital records.",
-  },
-  {
-    icon: Accessibility,
-    title: "Accessibility",
-    description:
-      "Can help improve access for all users across devices and abilities.",
-  },
-  {
-    icon: Wrench,
-    title: "Platform Maintenance",
-    description:
-      "Contributes toward regular updates, security patches, and system reliability.",
+    description: "Long-term organization and preservation of Ravenshaw's digital records.",
   },
   {
     icon: Users,
     title: "Community Features",
-    description:
-      "May support alumni profiles, directories, memories, and shared experiences.",
-  },
-  {
-    icon: CalendarDays,
-    title: "Events and Competitions",
-    description:
-      "Can help support approved campus events, competitions, and participation features.",
+    description: "Alumni profiles, directories, memories, and shared experiences.",
   },
   {
     icon: Award,
     title: "Certificate Infrastructure",
-    description:
-      "Contributes toward verified digital certificate generation and verification.",
-  },
-  {
-    icon: Clock,
-    title: "Long-Term Preservation",
-    description:
-      "May support the continued availability of Ravenshaw Moments for future generations.",
-  },
+    description: "Verified digital certificate generation and on-demand verification.",
+  }
 ];
 
 export const DonationImpact: React.FC = () => {
   return (
-    <section
-      id="impact"
-      aria-labelledby="impact-heading"
-      className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8"
-    >
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div className="text-center space-y-3">
-          <h2
-            id="impact-heading"
-            className="text-2xl sm:text-3xl font-black text-[#171214] tracking-tight"
-          >
-            How Contributions May Help
-          </h2>
-          <p className="text-sm text-[#756A6E] max-w-2xl mx-auto">
-            Contributions may support the following approved platform areas.
-            Allocation depends on platform needs and is not guaranteed to any
-            single area.
+    <section id="impact" aria-labelledby="impact-heading" className="py-20 lg:py-28 bg-[#FFFDF8]">
+      <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-sm font-black text-[#D4AF37] uppercase tracking-widest mb-4">The Impact</h2>
+          <h3 id="impact-heading" className="text-3xl md:text-5xl font-black text-[#3A0016] font-serif mb-6">
+            Where Contributions Go
+          </h3>
+          <p className="text-lg text-[#3A0016]/70">
+            Contributions support the following approved platform areas to ensure Ravenshaw Moments remains free, fast, and accessible for everyone.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {impactAreas.map((area) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {impactAreas.map((area, index) => {
             const Icon = area.icon;
             return (
               <div
                 key={area.title}
-                className="bg-white shadow-sm rounded-2xl p-5 border border-[#8F0028]/10 flex items-start gap-4 hover:border-[#E8B83F]/30 transition-colors"
+                className="group relative bg-white p-8 rounded-3xl border border-[#3A0016]/10 shadow-sm hover:shadow-xl hover:border-[#D4AF37]/50 transition-all duration-300 overflow-hidden"
               >
-                <div className="w-9 h-9 rounded-xl bg-[#8F0028]/10 border border-[#E8B83F]/30 flex items-center justify-center text-[#8F0028] shrink-0">
-                  <Icon className="w-5 h-5" aria-hidden="true" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-black text-[#171214]">
-                    {area.title}
-                  </h3>
-                  <p className="text-xs text-[#756A6E] leading-relaxed">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#D4AF37]/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-[#D4AF37]/10 transition-colors" />
+                <div className="relative z-10">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3A0016] to-[#4A0D1A] flex items-center justify-center text-[#D4AF37] mb-6 shadow-lg group-hover:-translate-y-1 transition-transform">
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-xl font-bold text-[#3A0016] mb-3">{area.title}</h4>
+                  <p className="text-[#3A0016]/60 leading-relaxed text-sm">
                     {area.description}
                   </p>
                 </div>

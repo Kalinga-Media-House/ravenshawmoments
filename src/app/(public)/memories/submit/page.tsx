@@ -26,7 +26,7 @@ export default async function ShareMemorySubmissionPage() {
   if (user) {
     const { data } = await supabase
       .from("profiles")
-      .select("id, full_name, avatar_url, profile_status, is_verified")
+      .select("id, full_name, profile_status, is_verified")
       .eq("id", user.id)
       .single();
     currentUser = data;

@@ -34,8 +34,8 @@ export default async function AdminAlumniPage() {
                   <CardTitle>{profile.profiles?.full_name}</CardTitle>
                   <CardDescription>{profile.profiles?.email}</CardDescription>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline">{profile.profiles?.departments?.name}</Badge>
-                    <Badge variant="outline">{profile.profiles?.batches?.name}</Badge>
+                    <Badge variant="outline">{profile.profiles?.department_name}</Badge>
+                    <Badge variant="outline">{profile.profiles?.batch_year}</Badge>
                   </div>
                 </div>
               </div>

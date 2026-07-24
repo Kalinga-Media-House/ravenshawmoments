@@ -28,7 +28,7 @@ export default async function BusinessDetailsPage({ params }: { params: { slug: 
   const { data: { user } } = await supabase.auth.getUser();
   let currentUser = null;
   if (user) {
-    const { data } = await supabase.from('profiles').select('id, full_name, avatar_url, profile_status, is_verified').eq('id', user.id).single();
+    const { data } = await supabase.from('profiles').select('id, full_name, profile_status, is_verified').eq('id', user.id).single();
     currentUser = data;
   }
 
